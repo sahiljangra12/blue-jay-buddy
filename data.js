@@ -18,59 +18,62 @@ window.BJB = {
 
   items: [
     // Academics
-    {cat:"academics",t:"SIS",d:"Register for classes, see grades, pay your bill, waive health insurance.",u:"https://sis.jhu.edu",k:"register registration grades bill billing tuition insurance waiver enrollment degree audit"},
-    {cat:"academics",t:"Canvas",d:"Course pages, assignments, syllabi and due dates.",u:"https://canvas.jhu.edu",k:"assignments homework course syllabus deadlines lms"},
-    {cat:"academics",t:"my.JH portal",d:"Sign-in hub for your JHED account, email and university apps.",u:"https://my.jh.edu",k:"jhed login password email outlook portal"},
+    {cat:"academics",t:"SIS",g:"sis",d:"Register for classes, see grades, pay your bill, waive health insurance.",u:"https://sis.jhu.edu",k:"register registration grades bill billing tuition insurance waiver enrollment degree audit"},
+    {cat:"academics",t:"Canvas",g:"canvas",d:"Course pages, assignments, syllabi and due dates.",u:"https://canvas.jhu.edu",k:"assignments homework course syllabus deadlines lms"},
+    {cat:"academics",t:"my.JH portal",g:"jhed",d:"Sign-in hub for your JHED account, email and university apps.",u:"https://my.jh.edu",k:"jhed login password email outlook portal"},
+    {cat:"academics",t:"JHED login & MFA",g:"jhed",d:"Set up your Hopkins sign-in and two-step verification.",u:"https://aka.ms/mfasetup",k:"jhed login password mfa two factor authenticator sign in locked out"},
     {cat:"academics",t:"Academic Support",d:"Registration dates, tutoring and learning support.",u:"https://academicsupport.jhu.edu",k:"tutoring tutor study help registration dates"},
     {cat:"academics",t:"Engineering Advising",d:"Advising for Whiting School of Engineering students.",u:"https://engineering.jhu.edu/advising",k:"advisor adviser engineering wse"},
     {cat:"academics",t:"Arts & Sciences Advising",d:"Advising for Krieger School students.",u:"https://advising.jhu.edu",k:"advisor adviser ksas major"},
-    {cat:"academics",t:"Sheridan Libraries",d:"Books, databases, study rooms and Ask a Librarian.",u:"https://www.library.jhu.edu",k:"library books journals study room databases research librarian brody"},
+    {cat:"academics",t:"Sheridan Libraries",g:"library",d:"Books, databases, study rooms and Ask a Librarian.",u:"https://www.library.jhu.edu",k:"library books journals study room databases research librarian brody"},
     {cat:"academics",t:"Homewood Graduate Affairs",d:"Services and support for Homewood master's and PhD students.",u:"https://homewoodgrad.jhu.edu/student-services/",k:"grad graduate masters phd"},
 
     // Services
-    {cat:"services",t:"J-Card Office",d:"Student ID, lost cards, mobile credential. Wyman Park Building, room 171.",u:"https://studentaffairs.jhu.edu/jcard/",p:"410-516-5121",k:"id card lost jcard j-card wyman"},
-    {cat:"services",t:"IT Help Desk",d:"JHED sign-in, Wi-Fi and university systems.",p:"410-516-4357",u:"https://my.jh.edu",k:"it wifi internet password jhed computer tech help"},
-    {cat:"services",t:"International Services (OIS)",d:"Visas, I-20s, travel signatures, CPT and OPT.",u:"https://ois.jhu.edu",k:"international visa i-20 opt cpt f1 travel signature"},
-    {cat:"services",t:"Life Design Lab",d:"Career coaching, resumes, internships and jobs.",u:"https://studentaffairs.jhu.edu/life-design/",k:"career resume internship job interview"},
-    {cat:"services",t:"Handshake",d:"Job and internship postings, including on-campus work.",u:"https://jhu.joinhandshake.com",k:"jobs internship career on-campus work"},
+    {cat:"services",t:"J-Card Office",g:"jcard",d:"Student ID, lost cards, mobile credential. Wyman Park Building, room 171.",u:"https://studentaffairs.jhu.edu/jcard/",p:"410-516-5121",k:"id card lost jcard j-card wyman"},
+    {cat:"services",t:"IT Help Desk",g:"jhed",d:"JHED sign-in, Wi-Fi and university systems.",p:"410-516-4357",u:"https://my.jh.edu",k:"it wifi internet password jhed computer tech help"},
+    {cat:"services",t:"Wi-Fi (eduroam)",g:"wifi",d:"Connect with yourJHED@jh.edu and your JHED password.",u:"https://studentaffairs.jhu.edu/computing/resnet/wireless-devices-and-printers/",k:"wifi wi-fi internet eduroam network hopkins connect"},
+    {cat:"services",t:"Printing & scanning",g:"printing",d:"Library printers with your J-Card. Email files to print from your phone.",u:"https://ask.library.jhu.edu/library-buildings/faq/409803",k:"print printing printer scan copy pages library"},
+    {cat:"services",t:"International Services (OIS)",g:"ois",d:"Visas, I-20s, travel signatures, CPT and OPT.",u:"https://ois.jhu.edu",k:"international visa i-20 opt cpt f1 travel signature"},
+    {cat:"services",t:"Life Design Lab",g:"handshake",d:"Career coaching, resumes, internships and jobs.",u:"https://studentaffairs.jhu.edu/life-design/",k:"career resume internship job interview"},
+    {cat:"services",t:"Handshake",g:"handshake",d:"Job and internship postings, including on-campus work.",u:"https://jhu.joinhandshake.com",k:"jobs internship career on-campus work"},
     {cat:"services",t:"Student Disability Services",d:"Accommodations through the AIM portal.",u:"https://studentaffairs.jhu.edu/disabilities/",k:"accommodation disability aim exam"},
     {cat:"services",t:"Off-Campus Housing",d:"Listings and advice for renting near Homewood.",u:"https://studentaffairs.jhu.edu/community-living/offcampus/",k:"housing apartment rent lease landlord"},
     {cat:"services",t:"Dining Office",d:"Meal plans, Dining Dollars and J-Cash.",p:"410-516-3383",u:"https://studentaffairs.jhu.edu/dining/",k:"meal plan dining dollars jcash food"},
 
     // Health
-    {cat:"health",t:"Student Health & Wellness",d:"Appointments, illness and vaccines.",u:"https://studentaffairs.jhu.edu/student-health/",k:"doctor sick health clinic appointment vaccine"},
-    {cat:"health",t:"Counseling Center",d:"Therapy, crisis support and workshops.",u:"https://studentaffairs.jhu.edu/counselingcenter/",k:"mental health therapy counseling stress anxiety talk"},
-    {cat:"health",t:"CHEW",d:"Health education and wellness programs.",u:"https://studentaffairs.jhu.edu/chew/",k:"wellness sleep nutrition health education"},
+    {cat:"health",t:"Primary Care (doctor visits)",g:"health",d:"Sick, injured or need a checkup. Book in the myHealth portal or call during the day.",p:"410-516-8270",u:"https://wellbeing.jhu.edu/PrimaryCare/",k:"doctor sick health clinic appointment vaccine nurse student health myhealth"},
+    {cat:"health",t:"Mental Health Services",g:"mental",d:"Counseling and therapy for students. Homewood office at 3003 N. Charles St., Suite S-200.",p:"410-516-3311",u:"https://wellbeing.jhu.edu/MentalHealthServices/contact-information",k:"mental health therapy counseling counselor stress anxiety depression talk"},
+    {cat:"health",t:"myHealth portal",g:"health",d:"Book and manage health and counseling appointments online.",u:"https://myhealth.wellbeing.jhu.edu/",k:"appointment portal book schedule"},
+    {cat:"health",t:"Sexual Assault Helpline",d:"Confidential, staffed 24/7 by trained counselors.",p:"410-516-7333",u:"https://wellbeing.jhu.edu/youdecide",k:"sexual assault helpline confidential 24/7"},
     {cat:"health",t:"Student Outreach & Support",d:"Case managers who help when life gets complicated.",u:"https://studentaffairs.jhu.edu/student-life/student-outreach-support/",k:"help support emergency case manager food insecurity"},
-
     // Get around
-    {cat:"move",t:"The JHMI shuttle (\"the Jimmy\")",d:"Homewood to Penn Station, Peabody and the medical campus. Boards at the Interfaith Center, Scott-Bates Commons and the JHU Bookstore.",u:"https://jhfre.jhu.edu/ts/transportation/shuttle-services",k:"jimmy jhmi shuttle bus peabody penn station hospital medical campus east baltimore"},
-    {cat:"move",t:"Blue Jay Shuttle & Night Ride",d:"Free night rides around Homewood. Request one in the TransLoc app.",u:"https://jhfre.jhu.edu/ts/transportation/shuttle-services",k:"night ride shuttle transloc late night safe ride"},
-    {cat:"move",t:"All shuttle routes",d:"Commuter, circulator and express routes. Van shuttles now leave from the Bloomberg Student Center.",p:"410-516-7275",u:"https://jhfre.jhu.edu/ts/transportation/shuttle-services",k:"routes schedule keswick bayview remington hampden circulator"},
-    {cat:"move",t:"Charm City Circulator",d:"Free city buses. The Purple route runs closest to Homewood.",u:"https://www.google.com/search?q=Charm+City+Circulator+Purple+route",k:"free bus city inner harbor downtown"},
-    {cat:"move",t:"Collegetown Shuttle",d:"Homewood to Towson and Notre Dame of Maryland. Stops in front of Scott-Bates Commons.",u:"https://www.google.com/search?q=Baltimore+Collegetown+Shuttle",k:"towson mall collegetown"},
+    {cat:"move",t:"The JHMI shuttle (\"the Jimmy\")",g:"jhmi",d:"Homewood to Penn Station, Peabody and the medical campus. Boards at the Interfaith Center, Scott-Bates Commons and the JHU Bookstore.",u:"https://jhfre.jhu.edu/ts/transportation/shuttle-services",k:"jimmy jhmi shuttle bus peabody penn station hospital medical campus east baltimore"},
+    {cat:"move",t:"Blue Jay Shuttle & Night Ride",g:"bluejay",d:"Free night rides around Homewood. Request one in the TransLoc app.",u:"https://jhfre.jhu.edu/ts/transportation/shuttle-services",k:"night ride shuttle transloc late night safe ride"},
+    {cat:"move",t:"All shuttle routes",g:"transloc",d:"Commuter, circulator and express routes. Van shuttles now leave from the Bloomberg Student Center.",p:"410-516-7275",u:"https://jhfre.jhu.edu/ts/transportation/shuttle-services",k:"routes schedule keswick bayview remington hampden circulator"},
+    {cat:"move",t:"Charm City Circulator",g:"citybus",d:"Free city buses. The Purple route runs closest to Homewood.",u:"https://www.google.com/search?q=Charm+City+Circulator+Purple+route",k:"free bus city inner harbor downtown"},
+    {cat:"move",t:"Collegetown Shuttle",g:"citybus",d:"Homewood to Towson and Notre Dame of Maryland. Stops in front of Scott-Bates Commons.",u:"https://www.google.com/search?q=Baltimore+Collegetown+Shuttle",k:"towson mall collegetown"},
 
     // Food
-    {cat:"food",t:"Today's dining hours",d:"Official list of every Homewood and Peabody dining spot with current hours.",u:"https://studentaffairs.jhu.edu/dining/where-to-eat/",k:"food eat hours dining open menu"},
+    {cat:"food",t:"Today's dining hours",g:"mobile-order",d:"Official list of every Homewood and Peabody dining spot with current hours.",u:"https://studentaffairs.jhu.edu/dining/where-to-eat/",k:"food eat hours dining open menu"},
     {cat:"food",t:"Charles Street Market",d:"Groceries, deli and late-night snacks.",u:MAPS("Charles Street Market"),k:"grocery snacks deli late night market"},
     {cat:"food",t:"Levering Kitchens",d:"Weekday lunch in Levering Hall: noodle bowls, salads, wraps, pizza.",u:MAPS("Levering Hall"),k:"lunch levering noodles salad"},
     {cat:"food",t:"Hopkins Café",d:"Dining hall stations including Passport (a new cuisine each week) and Woodstone pizza with halal meats.",u:"https://studentaffairs.jhu.edu/dining/where-to-eat/",k:"dining hall halal pizza passport"},
     {cat:"food",t:"Café Azafrán",d:"A Homewood favorite in the Space Telescope Science Institute's Muller building.",u:MAPS("Cafe Azafran"),k:"cafe lunch breakfast"},
-    {cat:"food",t:"Order ahead",d:"Skip the line at participating spots with the Transact Mobile Ordering app.",u:"https://studentaffairs.jhu.edu/dining/where-to-eat/",k:"order ahead app transact pickup mobile"},
+    {cat:"food",t:"Order ahead",g:"mobile-order",d:"Skip the line at participating spots with the Transact Mobile Ordering app.",u:"https://studentaffairs.jhu.edu/dining/where-to-eat/",k:"order ahead app transact pickup mobile"},
     {cat:"food",t:"Cheap eats nearby",d:"A student-wellbeing guide to affordable, diet-friendly restaurants around Homewood.",u:"https://wellbeing.jhu.edu/?p=4545",k:"restaurants cheap vegetarian vegan off campus charles village"},
 
     // Fun
-    {cat:"fun",t:"Hopkins Groups",d:"400+ student organizations and this week's campus events.",u:"https://jhu.campusgroups.com",k:"clubs groups events organizations join volleyball"},
-    {cat:"fun",t:"O'Connor Rec Center",d:"Gym, pool, climbing wall, group fitness, intramurals and club sports.",p:"410-516-4434",u:"https://studentaffairs.jhu.edu/recreation/ralph-s-oconnor-recreation-center/hours-of-operation",k:"gym workout pool climbing fitness intramural sports volleyball rec"},
+    {cat:"fun",t:"Hopkins Groups",g:"groups",d:"400+ student organizations and this week's campus events.",u:"https://jhu.campusgroups.com",k:"clubs groups events organizations join volleyball"},
+    {cat:"fun",t:"O'Connor Rec Center",g:"rec",d:"Gym, pool, climbing wall, group fitness, intramurals and club sports.",p:"410-516-4434",u:"https://studentaffairs.jhu.edu/recreation/ralph-s-oconnor-recreation-center/hours-of-operation",k:"gym workout pool climbing fitness intramural sports volleyball rec"},
     {cat:"fun",t:"Graduate Representative Organization",d:"Grad student groups, happy hours and tournaments.",u:"https://www.google.com/search?q=JHU+Graduate+Representative+Organization",k:"gro grad social events"},
     {cat:"fun",t:"Baltimore Museum of Art",d:"Free admission, right next to campus.",u:MAPS("Baltimore Museum of Art"),k:"museum art free weekend bma"},
     {cat:"fun",t:"Inner Harbor",d:"Waterfront, aquarium and food. Take the Circulator.",u:"https://www.google.com/maps/search/?api=1&query=Inner+Harbor+Baltimore",k:"harbor weekend aquarium downtown"},
 
     // Safety
-    {cat:"safety",t:"Campus emergency",d:"Fire, medical or police emergency on the Homewood campus. You can also dial 911.",p:"410-516-7777",u:"https://publicsafety.jhu.edu",k:"emergency police fire medical urgent 911 danger"},
-    {cat:"safety",t:"Safety escort",d:"Campus Safety & Security. Ask for a walking or vehicle escort.",p:"410-516-4600",u:"https://publicsafety.jhu.edu/resources-and-services/services-for-you/safety-escort-program/",k:"escort walk home unsafe security non-emergency"},
-    {cat:"safety",t:"LiveSafe app",d:"Message security, request an escort, share your location with friends.",u:"https://studentaffairs.jhu.edu/community-living/offcampus/security",k:"app livesafe location alert"},
-    {cat:"safety",t:"Weather & closures hotline",d:"Snow days, closures and delays.",p:"800-548-9004",u:"https://publicsafety.jhu.edu",k:"snow closure weather cancel delay"},
+    {cat:"safety",t:"Campus emergency",g:"emergency",d:"Fire, medical or police emergency on the Homewood campus. You can also dial 911.",p:"410-516-7777",u:"https://publicsafety.jhu.edu",k:"emergency police fire medical urgent 911 danger"},
+    {cat:"safety",t:"Safety escort",g:"escort",d:"Campus Safety & Security. Ask for a walking or vehicle escort.",p:"410-516-4600",u:"https://publicsafety.jhu.edu/resources-and-services/services-for-you/safety-escort-program/",k:"escort walk home unsafe security non-emergency"},
+    {cat:"safety",t:"LiveSafe app",g:"livesafe",d:"Message security, request an escort, share your location with friends.",u:"https://studentaffairs.jhu.edu/community-living/offcampus/security",k:"app livesafe location alert"},
+    {cat:"safety",t:"Weather & closures hotline",d:"Snow days, closures and delays.",p:"410-516-7781",u:"https://publicsafety.jhu.edu",k:"snow closure weather cancel delay"},
   ],
 
   buildings: [

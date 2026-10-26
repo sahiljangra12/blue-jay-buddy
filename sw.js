@@ -1,7 +1,7 @@
 // Offline support: the app shell is cached so the hub opens without a connection.
 // Bump VERSION whenever you change a file so phones pick up the new copy.
-const VERSION = "bjb-v1";
-const SHELL = ["./", "index.html", "styles.css", "data.js", "app.js", "manifest.webmanifest", "assets/icon.svg", "assets/icon-192.png", "assets/fonts/bricolage.woff2", "assets/fonts/plex-sans-400.woff2", "assets/fonts/plex-sans-500.woff2", "assets/fonts/plex-sans-600.woff2", "assets/fonts/plex-mono-500.woff2"];
+const VERSION = "bjb-v2";
+const SHELL = ["./", "index.html", "styles.css", "data.js", "guides.js", "app.js", "manifest.webmanifest", "assets/icon.svg", "assets/icon-192.png", "assets/fonts/bricolage.woff2", "assets/fonts/plex-sans-400.woff2", "assets/fonts/plex-sans-500.woff2", "assets/fonts/plex-sans-600.woff2", "assets/fonts/plex-mono-500.woff2"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

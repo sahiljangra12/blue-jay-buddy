@@ -8,6 +8,10 @@ A no-login student hub for Johns Hopkins University's Homewood campus. Everythin
 
 ## What it does
 
+- **Make it mine**: a 1-minute setup (about you, program, where you live, classes, interests) that builds a personal home screen with a first-weeks checklist and picks for you.
+- **Step-by-step guides** for 20 everyday tasks (JHED and MFA, Wi-Fi, J-Card on your phone, TransLoc, night rides, printing, health appointments, OIS check-in and more), with App Store and Google Play buttons where an app exists.
+- **Calls always ask first**: every call button opens a confirmation, so nobody dials the emergency line by accident.
+
 - **Search everything** in plain words ("lost ID", "visa", "therapy", "pizza"). Press `/` to jump to search.
 - **Quick actions** for the campus emergency line, safety escort, shuttles, food hours, Canvas, SIS, the library and clubs.
 - **Up next**: add your classes once and the home screen shows your next class, a countdown and walking directions.
