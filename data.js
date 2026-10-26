@@ -1,10 +1,16 @@
 // Blue Jay Buddy content. Edit this file to add or fix links; the app rebuilds from it.
-// Fields: cat (section), t (title), d (description), u (link), p (phone, optional), k (search keywords)
+// Fields: cat (section), t (title), d (description), u (link), p (phone, optional), k (search keywords),
+//         g (guide id, optional), c (month this link was last checked, "YYYY-MM"; falls back to reviewed below)
 
 const MAPS = q => "https://www.google.com/maps/search/?api=1&query=" +
   encodeURIComponent(q + ", Johns Hopkins University Homewood, Baltimore");
 
 window.BJB = {
+  // Month every link and phone number was last reviewed. Update this after each pre-semester check.
+  reviewed: "2026-10",
+  // Where "Report a problem" and "Send feedback" go.
+  contact: "sfnu1@jh.edu",
+
   sections: [
     { id: "academics", label: "Classes",   intro: "Everything for your courses. Add your timetable on Home to get a live \"up next\" card." },
     { id: "move",      label: "Get around", intro: "Free shuttles link Homewood, Penn Station, Peabody and the medical campus. Track them live in the TransLoc app." },
@@ -27,6 +33,7 @@ window.BJB = {
     {cat:"academics",t:"Arts & Sciences Advising",d:"Advising for Krieger School students.",u:"https://advising.jhu.edu",k:"advisor adviser ksas major"},
     {cat:"academics",t:"Sheridan Libraries",g:"library",d:"Books, databases, study rooms and Ask a Librarian.",u:"https://www.library.jhu.edu",k:"library books journals study room databases research librarian brody"},
     {cat:"academics",t:"Homewood Graduate Affairs",d:"Services and support for Homewood master's and PhD students.",u:"https://homewoodgrad.jhu.edu/student-services/",k:"grad graduate masters phd"},
+    {cat:"academics",t:"Academic calendar",g:"calendar",c:"2026-10",d:"First day of classes, add/drop and withdrawal deadlines, breaks and finals for each school.",u:"https://registrar.jhu.edu/academic-calendar/divisional-academic-calendars",k:"calendar dates add drop withdraw deadline break holiday finals exams semester start end"},
 
     // Services
     {cat:"services",t:"J-Card Office",g:"jcard",d:"Student ID, lost cards, mobile credential. Wyman Park Building, room 171.",u:"https://studentaffairs.jhu.edu/jcard/",p:"410-516-5121",k:"id card lost jcard j-card wyman"},
@@ -38,6 +45,7 @@ window.BJB = {
     {cat:"services",t:"Handshake",g:"handshake",d:"Job and internship postings, including on-campus work.",u:"https://jhu.joinhandshake.com",k:"jobs internship career on-campus work"},
     {cat:"services",t:"Student Disability Services",d:"Accommodations through the AIM portal.",u:"https://studentaffairs.jhu.edu/disabilities/",k:"accommodation disability aim exam"},
     {cat:"services",t:"Off-Campus Housing",d:"Listings and advice for renting near Homewood.",u:"https://studentaffairs.jhu.edu/community-living/offcampus/",k:"housing apartment rent lease landlord"},
+    {cat:"services",t:"Lost and found",g:"lost",c:"2026-10",d:"Public Safety, 3001 Remington Ave. Check the recovered property list, then call to pick up.",p:"410-516-5278",u:"https://publicsafety.jhu.edu/resources-services/services-for-you/lost-and-found/",k:"lost found missing wallet phone laptop keys item"},
     {cat:"services",t:"Dining Office",d:"Meal plans, Dining Dollars and J-Cash.",p:"410-516-3383",u:"https://studentaffairs.jhu.edu/dining/",k:"meal plan dining dollars jcash food"},
 
     // Health
@@ -46,12 +54,14 @@ window.BJB = {
     {cat:"health",t:"myHealth portal",g:"health",d:"Book and manage health and counseling appointments online.",u:"https://myhealth.wellbeing.jhu.edu/",k:"appointment portal book schedule"},
     {cat:"health",t:"Sexual Assault Helpline",d:"Confidential, staffed 24/7 by trained counselors.",p:"410-516-7333",u:"https://wellbeing.jhu.edu/youdecide",k:"sexual assault helpline confidential 24/7"},
     {cat:"health",t:"Student Outreach & Support",d:"Case managers who help when life gets complicated.",u:"https://studentaffairs.jhu.edu/student-life/student-outreach-support/",k:"help support emergency case manager food insecurity"},
+    {cat:"health",t:"Student health insurance",g:"insurance",c:"2026-10",d:"The student health plan, ID cards and how to waive it if you have other coverage.",u:"https://jhu.myahpcare.com",k:"insurance waiver waive health plan aetna ahp coverage id card"},
     // Get around
     {cat:"move",t:"The JHMI shuttle (\"the Jimmy\")",g:"jhmi",d:"Homewood to Penn Station, Peabody and the medical campus. Boards at the Interfaith Center, Scott-Bates Commons and the JHU Bookstore.",u:"https://jhfre.jhu.edu/ts/transportation/shuttle-services",k:"jimmy jhmi shuttle bus peabody penn station hospital medical campus east baltimore"},
     {cat:"move",t:"Blue Jay Shuttle & Night Ride",g:"bluejay",d:"Free night rides around Homewood. Request one in the TransLoc app.",u:"https://jhfre.jhu.edu/ts/transportation/shuttle-services",k:"night ride shuttle transloc late night safe ride"},
     {cat:"move",t:"All shuttle routes",g:"transloc",d:"Commuter, circulator and express routes. Van shuttles now leave from the Bloomberg Student Center.",p:"410-516-7275",u:"https://jhfre.jhu.edu/ts/transportation/shuttle-services",k:"routes schedule keswick bayview remington hampden circulator"},
     {cat:"move",t:"Charm City Circulator",g:"citybus",d:"Free city buses. The Purple route runs closest to Homewood.",u:"https://www.google.com/search?q=Charm+City+Circulator+Purple+route",k:"free bus city inner harbor downtown"},
     {cat:"move",t:"Collegetown Shuttle",g:"citybus",d:"Homewood to Towson and Notre Dame of Maryland. Stops in front of Scott-Bates Commons.",u:"https://www.google.com/search?q=Baltimore+Collegetown+Shuttle",k:"towson mall collegetown"},
+    {cat:"move",t:"Parking permits",c:"2026-10",d:"Student parking options and the permit request form. Popular lots often have a waitlist.",u:"https://jhfre.jhu.edu/ts/parking/parking-options/",k:"parking permit car garage lot commuter drive"},
 
     // Food
     {cat:"food",t:"Today's dining hours",g:"mobile-order",d:"Official list of every Homewood and Peabody dining spot with current hours.",u:"https://studentaffairs.jhu.edu/dining/where-to-eat/",k:"food eat hours dining open menu"},
@@ -61,6 +71,7 @@ window.BJB = {
     {cat:"food",t:"Café Azafrán",d:"A Homewood favorite in the Space Telescope Science Institute's Muller building.",u:MAPS("Cafe Azafran"),k:"cafe lunch breakfast"},
     {cat:"food",t:"Order ahead",g:"mobile-order",d:"Skip the line at participating spots with the Transact Mobile Ordering app.",u:"https://studentaffairs.jhu.edu/dining/where-to-eat/",k:"order ahead app transact pickup mobile"},
     {cat:"food",t:"Cheap eats nearby",d:"A student-wellbeing guide to affordable, diet-friendly restaurants around Homewood.",u:"https://wellbeing.jhu.edu/?p=4545",k:"restaurants cheap vegetarian vegan off campus charles village"},
+    {cat:"food",t:"Hopkins Food Pantry",c:"2026-10",d:"Free groceries and essentials for students who need them, run by Student Outreach & Support.",u:"https://studentaffairs.jhu.edu/student-outreach-support/hopkins-food-pantry",k:"food pantry free groceries hungry food insecurity essentials"},
 
     // Fun
     {cat:"fun",t:"Hopkins Groups",g:"groups",d:"400+ student organizations and this week's campus events.",u:"https://jhu.campusgroups.com",k:"clubs groups events organizations join volleyball"},
@@ -94,29 +105,14 @@ window.BJB = {
 };
 window.BJB.maps = MAPS;
 
-// ---------- Campus photos ----------
-// Wikimedia Commons photos load through Special:FilePath (resized by Commons).
-// Library of Congress photos are from the Carol M. Highsmith Archive, which is in the public domain.
-const COMMONS = (name, w) => "https://commons.wikimedia.org/wiki/Special:FilePath/" + encodeURIComponent(name) + "?width=" + w;
-const COMMONS_PAGE = name => "https://commons.wikimedia.org/wiki/File:" + encodeURIComponent(name.replace(/ /g, "_"));
-const LOC = (id, pct) => `https://tile.loc.gov/image-services/iiif/service:pnp:highsm:${Math.floor(id / 100) * 100}:${id}/full/pct:${pct}/0/default.jpg`;
-const photo = {
-  commons: (key, title, caption, file) => ({ key, title, caption, src: w => COMMONS(file, w), credit: "Wikimedia Commons", page: COMMONS_PAGE(file), file }),
-  loc: (key, title, caption, id) => ({ key, title, caption, src: w => LOC(id, w > 1000 ? 25 : 12.5), credit: "Carol M. Highsmith Archive, Library of Congress (public domain)", page: `https://www.loc.gov/resource/highsm.${id}/`, file: `highsm.${id}` }),
-};
-window.BJB.photos = [
-  photo.commons("hero",   "Gilman Hall", "The clock tower at the head of the Upper Quad.", "Gilman Hall at the head of the Upper Quad, Johns Hopkins University.jpg"),
-  photo.commons("gilman", "Gilman Hall", "Home of the humanities since 1915.", "Gilman Hall, Johns Hopkins University, Baltimore, MD.jpg"),
-  photo.loc("brody",      "Brody Learning Commons", "Open late, glass walls, group rooms.", 18372),
-  photo.loc("mse",        "Eisenhower Library", "The main Homewood library, mostly underground.", 18409),
-  photo.commons("keyser", "Keyser Quad", "The lawn where everyone ends up on a sunny day.", "Panorama of the Keyser Quad from the steps of Gilman Hall.jpg"),
-  photo.commons("decker", "Decker Quad", "Engineering's side of campus.", "Panorama of buildings on the Decker Quad - 53494926873.jpg"),
-  photo.commons("shriver","Shriver Hall", "Concerts, talks and big lectures.", "Shriver Hall at the foot of the Lower (Wyman) Quad (Johns Hopkins University).jpg"),
-  photo.commons("merg",   "Mergenthaler Hall", "Biology and neuroscience labs.", "Mergenthaler Hall, Johns Hopkins University, Baltimore, MD.jpg"),
-  photo.commons("museum", "Homewood Museum", "The 1801 house the campus is named after.", "Homewood Museum, Johns Hopkins University, Baltimore, MD.jpg"),
-  photo.commons("gate",   "East Gate", "The Charles Street entrance.", "East Gate of Johns Hopkins University Homewood Campus (2016, Dec).jpg"),
+// ---------- Campus places shown as animated illustrations (illustrations.js) ----------
+window.BJB.places = [
+  { key: "keyser",  title: "Keyser Quad", caption: "The lawn where everyone ends up on a sunny day." },
+  { key: "brody",   title: "Brody Learning Commons", caption: "Open late, glass walls, group rooms." },
+  { key: "mse",     title: "Milton S. Eisenhower Library", caption: "The main Homewood library, mostly underground." },
+  { key: "decker",  title: "Decker Quad", caption: "Engineering's side of campus." },
+  { key: "gilman",  title: "Gilman Hall", caption: "The clock tower at the head of the Upper Quad." },
+  { key: "shriver", title: "Shriver Hall", caption: "Concerts, talks and big lectures." },
+  { key: "museum",  title: "Homewood Museum", caption: "The 1801 house the campus is named after." },
+  { key: "gate",    title: "East Gate", caption: "The Charles Street entrance." },
 ];
-window.BJB.buildingPhoto = {
-  "Gilman Hall": "gilman", "Milton S. Eisenhower Library": "mse", "Brody Learning Commons": "brody",
-  "Shriver Hall": "shriver", "Mergenthaler Hall": "merg", "Homewood Museum": "museum",
-};

@@ -1,14 +1,15 @@
 (() => {
 "use strict";
-const D = window.BJB, G = window.BJB_GUIDES, MAPS = D.maps;
+const D = window.BJB, G = window.BJB_GUIDES, ART = window.BJB_ART, MAPS = D.maps;
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const strip = s => String(s).replace(/<[^>]+>/g, "");
 const DAY = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
-const PH = Object.fromEntries(D.photos.map(p => [p.key, p]));
-const onImg = `onload="this.classList.add('loaded')" onerror="this.remove()"`;
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const monthLabel = ym => { const [y, m] = String(ym || "").split("-").map(Number); return y && m ? `${MONTHS[m - 1]} ${y}` : ""; };
+const reportHref = title => `mailto:${D.contact}?subject=${encodeURIComponent(`Blue Jay Buddy: problem with "${title}"`)}&body=${encodeURIComponent(`What is wrong (broken link, wrong number, out of date)?\n\n\nPage: ${location.href}`)}`;
 
 /* ================= storage (this device only) ================= */
 const store = {
@@ -43,9 +44,9 @@ const ICON = {
   plus:'<path d="M12 5v14M5 12h14"/>',
   cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
   trash:'<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>',
+  shield:'<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="M9 12l2 2 4-4"/>',
 };
 const svg = (name, attrs = "") => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${attrs}>${ICON[name]}</svg>`;
-const initials = n => n.replace(/^(Ralph S\.|Milton S\.)\s*/,"").split(/\s+/).filter(w=>/^[A-Z]/.test(w)).slice(0,2).map(w=>w[0]).join("");
 const telOf = p => "tel:" + p.replace(/\D/g, "");
 const safeUrl = u => /^https?:\/\//i.test(u || "") ? u : (u ? "https://" + u : "");
 
@@ -85,14 +86,7 @@ function heroCta(){
   $("#planBtn").innerHTML = profile ? `${svg("edit")}Edit my plan` : `${svg("sparkle")}Make it mine <span class="tag">1 min</span>`;
   $("#navPlanBtn").textContent = profile ? "My plan" : "Make it mine";
 }
-(function heroPhoto(){
-  const p = PH.hero, img = $("#heroPhoto"), w = Math.min(2400, Math.round(innerWidth * (devicePixelRatio || 1) / 400) * 400 || 1600);
-  img.onload = () => { img.classList.add("loaded"); $("#heroCredit").innerHTML = `Photo: <a href="${p.page}" target="_blank" rel="noopener">${esc(p.title)}, ${esc(p.credit)}</a>`; };
-  img.onerror = () => img.remove();
-  img.src = p.src(Math.max(1200, w));
-})();
-$("#credits").innerHTML = D.photos.map(p => `<li><a href="${p.page}" target="_blank" rel="noopener">${esc(p.title)}</a> · ${esc(p.credit)}</li>`).join("") +
-  `<li>Illustrations and the Blue Jay Buddy mark are original artwork for this project.</li>`;
+$("#credits").innerHTML = `<li>All illustrations, the campus scenes and the Blue Jay Buddy mark are original artwork drawn in code for this project.</li>`;
 
 /* ================= quick actions ================= */
 function renderQuick(){
@@ -132,14 +126,14 @@ function card(it, i = 0, words = []){
         <a class="act" href="${esc(it.u)}" target="_blank" rel="noopener">Open ${svg("open")}</a>
         ${it.g && G[it.g] ? `<button class="act soft" type="button" data-guide="${it.g}">How to</button>` : ""}
       </div>
+      <div class="foot-row"><span class="checked">${svg("shield")}Checked ${esc(monthLabel(it.c || D.reviewed))}</span><a class="report" href="${reportHref(it.t)}">Report a problem</a></div>
     </div>
     <button class="star" type="button" data-fav="${esc(it.t)}" aria-pressed="${fav}" aria-label="${fav?"Remove from":"Add to"} favorites: ${esc(it.t)}">${svg("star")}</button>
   </article>`;
 }
 function bCard([n, type], i = 0, words = []){
-  const p = PH[D.buildingPhoto[n]];
-  return `<a class="card bcard reveal" style="--i:${i}" href="${MAPS(n)}" target="_blank" rel="noopener">
-    <div class="bimg">${p ? `<img src="${p.src(640)}" alt="${esc(n)}" loading="lazy" ${onImg}>` : ""}<span class="mono">${esc(initials(n))}</span></div>
+  return `<a class="card bcard reveal" style="--i:${i}" href="${MAPS(n)}" target="_blank" rel="noopener" aria-label="${esc(n)}, ${esc(type)}. Walking directions">
+    <div class="bimg">${ART.building(n, type)}</div>
     <div class="card-body"><h3 class="t">${highlight(n, words)}</h3><div class="meta"><span class="chip">${esc(type)}</span><span class="note">Directions ›</span></div></div>
   </a>`;
 }
@@ -152,12 +146,11 @@ function guideCard(id, i = 0, words = []){
   </button>`;
 }
 function bento(){
-  const keys = ["keyser","brody","mse","decker","gilman","shriver","museum","gate"];
-  return `<section class="io" aria-labelledby="h-campus">${head("Your campus","Homewood, up close.","Tap a place for walking directions.")}
-    <div class="bento">${keys.map(k => { const p = PH[k]; return `<figure class="ph">
-      <img src="${p.src(k === "keyser" ? 1400 : 800)}" alt="${esc(p.title)}" loading="lazy" ${onImg}>
+  return `<section class="io">${head("Your campus","Homewood, up close.","Tap a place for walking directions.")}
+    <div class="bento">${D.places.map(p => `<figure class="ph">
+      ${ART.scene(p.key)}
       <figcaption><b>${esc(p.title)}</b><span>${esc(p.caption)}</span></figcaption>
-      <a href="${MAPS(p.title)}" target="_blank" rel="noopener" aria-label="Directions to ${esc(p.title)}"></a></figure>`; }).join("")}</div></section>`;
+      <a href="${MAPS(p.title)}" target="_blank" rel="noopener" aria-label="Directions to ${esc(p.title)}"></a></figure>`).join("")}</div></section>`;
 }
 
 /* ================= personalization ================= */
@@ -177,12 +170,20 @@ const CHECK = {
   printing:{label:"Register for mobile printing", g:"printing"},
   rec:{label:"Visit the rec center", g:"rec"},
   bluejay:{label:"Try a Blue Jay Shuttle night ride", g:"bluejay"},
+  insurance:{label:"Enroll in or waive student health insurance", g:"insurance"},
+  calendar:{label:"Save this semester's key dates", g:"calendar"},
+  grad:{label:"Bookmark Homewood Graduate Affairs", u:"https://homewoodgrad.jhu.edu/student-services/"},
+  advising:{label:"Meet your advisor or program coordinator", u:"https://engineering.jhu.edu/advising"},
 };
 function checklistIds(p){
   if (!p) return [];
   const ids = [], isNew = p.status === "new";
-  if (isNew) ids.push("jhed","wifi","jcard","canvas");
+  const grad = p.level === "masters" || p.level === "phd";
+  if (isNew) ids.push("jhed","wifi","jcard","canvas","insurance");
   if (p.intl) ids.push("ois");
+  ids.push("calendar");
+  if (grad && isNew) ids.push("grad");
+  if (isNew && p.school === "wse") ids.push("advising");
   if (realClasses().length === 0) ids.push("classes");
   if (isNew || p.travel?.includes("shuttle") || p.live !== "oncampus") ids.push("transloc");
   ids.push("emergency");
@@ -212,6 +213,7 @@ function picksFor(p){
   if (I.includes("explore")) t.push("Charm City Circulator", "Inner Harbor");
   if (I.includes("food") || diet.length) t.push("Cheap eats nearby", "Order ahead");
   if (diet.includes("halal")) t.push("Hopkins Café");
+  if (p.travel?.includes("car")) t.push("Parking permits");
   if (I.includes("wellbeing")) t.push("Mental Health Services");
   return [...new Set(t)].map(itemByTitle).filter(Boolean).slice(0, 6);
 }
@@ -260,7 +262,7 @@ function viewHome(){
       <ul class="cl">${ids.map(id => `<li class="${doneSet.has(id)?"done":""}">
         <button class="tick" type="button" data-tick="${id}" aria-pressed="${doneSet.has(id)}" aria-label="Mark done: ${esc(CHECK[id].label)}">${svg("check")}</button>
         <span>${esc(CHECK[id].label)}</span>
-        ${CHECK[id].g ? `<button class="mini" type="button" data-guide="${CHECK[id].g}">How</button>` : `<button class="mini" type="button" data-addclass>Add</button>`}
+        ${CHECK[id].g ? `<button class="mini" type="button" data-guide="${CHECK[id].g}">How</button>` : CHECK[id].u ? `<a class="mini" href="${CHECK[id].u}" target="_blank" rel="noopener">Open</a>` : `<button class="mini" type="button" data-addclass>Add</button>`}
       </li>`).join("")}</ul>
     </div>`
   : `<div class="tile setup reveal" style="--i:1">
@@ -313,6 +315,11 @@ function viewHome(){
           <div class="card-body"><h3 class="t">${esc(s.label)}</h3><p class="d">${count} ${s.id==="map"?"buildings":"links"}</p></div></button>`;
       }).join("")}</div>
     </div>
+  </section>
+
+  <section class="io feedback-band" aria-label="Feedback">
+    <p><b>Something missing or wrong?</b> Blue Jay Buddy is built by a student. Tell me what would help and I will add it.</p>
+    <a class="pill primary" href="mailto:${D.contact}?subject=${encodeURIComponent("Blue Jay Buddy feedback")}">Send feedback</a>
   </section>`;
 }
 
@@ -407,6 +414,7 @@ function render(quiet = false){
   $("#main").classList.toggle("calm", quiet);
   $("#main").innerHTML = q ? viewSearch(q) : tab === "home" ? viewHome() : tab === "guides" ? viewGuides() : viewSection(tab);
   $$("#main .io").forEach(el => { if (quiet || !io) el.classList.add("in"); else io.observe(el); });
+  ART.watch($("#main"));
   setSky(); heroCta();
 }
 function go(t, scroll = true){
@@ -430,6 +438,7 @@ function openSheet(html, cls = ""){
   sheet.className = "sheet " + cls;
   if (!sheet.open) sheet.showModal();
   sheetBody.scrollTop = 0;
+  ART.watch(sheetBody);
   const f = sheetBody.querySelector("[autofocus], .primary, input, button, a"); if (f) f.focus({preventScroll:true});
 }
 function closeSheet(){
@@ -471,7 +480,8 @@ function guideSheet(id){
       ${g.link ? `<a class="pill primary" href="${esc(g.link.u)}" target="_blank" rel="noopener">${esc(g.link.t)} ${svg("open")}</a>` : ""}
       ${canTick ? `<button class="pill secondary" type="button" data-tick="${cid}" data-close-after>${doneSet.has(cid) ? `${svg("check")}Done` : "Mark as done"}</button>` : ""}
       <button class="pill ghost" type="button" data-close>Close</button>
-    </div>`);
+    </div>
+    <p class="note" style="margin-top:14px">Steps out of date? <a href="${reportHref("Guide: " + g.title)}">Report a problem</a></p>`);
 }
 function settingsSheet(){
   openSheet(`<div class="wiz-top"><span class="eyebrow">Settings</span><button class="iconx" type="button" data-close aria-label="Close">${svg("close")}</button></div>
@@ -691,7 +701,7 @@ if (!profile && !store.get("bjb-welcomed", false)){
   setTimeout(() => {
     if (sheet.open) return;
     openSheet(`<div class="call-sheet welcome">
-      <div class="welcome-hero"><img class="bg" src="${PH.keyser.src(900)}" alt="" ${onImg}><img class="logo" src="assets/icon.svg" alt=""></div>
+      <div class="welcome-hero">${ART.scene("keyser")}<img class="logo" src="assets/icon.svg" alt=""></div>
       <h2 id="sheetTitle">Welcome to Blue Jay Buddy</h2>
       <p>Classes, shuttles, food, buildings, safety numbers and step-by-step guides for Hopkins Homewood. No login, nothing to install.</p>
       <div class="sheet-actions"><button class="pill primary big" type="button" data-wizard>${svg("sparkle")}Make it mine</button>

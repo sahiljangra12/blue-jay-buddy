@@ -280,4 +280,41 @@ window.BJB_GUIDES = {
     link: { t: "Rec center hours", u: "https://studentaffairs.jhu.edu/recreation/ralph-s-oconnor-recreation-center/hours-of-operation" },
     phones: [{ t: "Welcome desk", p: "410-516-4434" }],
   },
+
+  "insurance": {
+    title: "Enroll in or waive student health insurance", group: "start", time: "15 min", who: "New students, and everyone once a year",
+    steps: [
+      "Hopkins students need health insurance. You are placed on the university student plan unless you waive it.",
+      "<b>International students on an F-1 or J-1 visa cannot waive</b> the university plan. You stay enrolled; nothing more to do.",
+      "To waive, your own plan must meet the university's rules: ACA-compliant, covering essential health benefits, covering you in Maryland, and active for the whole academic year.",
+      "Submit the waiver form through <b>SIS</b> during the enrollment window. The student plan's website explains each step.",
+      "Do it again <b>every academic year</b>, even if your insurance has not changed.",
+    ],
+    tips: ["Waivers for fall close in mid-September and are not accepted late. Check this year's exact dates on the plan's website.", "Keep a copy of your insurance card; you may be asked for details."],
+    link: { t: "Student health plan", u: "https://jhu.myahpcare.com" },
+  },
+
+  "calendar": {
+    title: "Find key dates (add/drop, breaks, finals)", group: "start", time: "2 min", who: "Everyone, each semester",
+    steps: [
+      "Open the university's <b>divisional academic calendars</b> page and choose the calendar for your school (Krieger or Whiting for most Homewood students).",
+      "Note the first day of classes, the <b>add/drop deadline</b>, the withdrawal deadline, breaks and the final exam period.",
+      "Put those dates in your own phone calendar. Your registration time slot is shown in <b>SIS</b>.",
+      "Graduate programs can have different deadlines. When in doubt, ask your department's academic coordinator.",
+    ],
+    link: { t: "Academic calendars", u: "https://registrar.jhu.edu/academic-calendar/divisional-academic-calendars" },
+  },
+
+  "lost": {
+    title: "Lost something on campus", group: "everyday", time: "3 min", who: "Anyone who lost or found an item",
+    steps: [
+      "Lost your <b>J-Card</b> or phone? Turn it off right away in the <b>eAccounts</b> app, then contact the J-Card Office (see the J-Card guide).",
+      "For anything else, check the <b>recovered property list</b> on the Public Safety lost and found page. It is updated twice a month.",
+      "If you see your item, call Lost and Found to make an appointment. Bring your J-Card or another photo ID.",
+      "Found something? Drop it at Public Safety, 3001 Remington Ave., during office hours. Items are kept for 30 days.",
+    ],
+    tips: ["Report a lost item quickly; it improves the chance of getting it back.", "Lost a laptop or phone? Also mark it lost in Find My (Apple) or Find My Device (Google)."],
+    link: { t: "Lost and found", u: "https://publicsafety.jhu.edu/resources-services/services-for-you/lost-and-found/" },
+    phones: [{ t: "Lost and Found", p: "410-516-5278" }],
+  },
 };
