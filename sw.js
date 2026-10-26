@@ -1,7 +1,7 @@
 // Offline support: the app shell is cached so the hub opens without a connection.
-// Bump VERSION whenever you change a file so phones pick up the new copy.
-const VERSION = "bjb-v4";
-const SHELL = ["./", "index.html", "styles.css", "data.js", "guides.js", "illustrations.js", "app.js", "manifest.webmanifest", "assets/icon.svg", "assets/icon-192.png"];
+// When you change a file, bump VERSION here and the ?v= numbers in index.html so every browser loads the new copy together.
+const VERSION = "bjb-v5";
+const SHELL = ["./", "index.html", "styles.css?v=5", "data.js?v=5", "guides.js?v=5", "illustrations.js?v=5", "app.js?v=5", "manifest.webmanifest", "assets/icon.svg", "assets/icon-192.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -14,7 +14,7 @@ self.addEventListener("fetch", e => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET" || url.origin !== location.origin) return;
   e.respondWith(
-    fetch(e.request).then(res => {
+    fetch(e.request, {cache: "no-cache"}).then(res => {
       const copy = res.clone();
       caches.open(VERSION).then(c => c.put(e.request, copy));
       return res;

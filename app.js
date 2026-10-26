@@ -1,6 +1,9 @@
 (() => {
 "use strict";
-const D = window.BJB, G = window.BJB_GUIDES, ART = window.BJB_ART, MAPS = D.maps;
+const D = window.BJB, G = window.BJB_GUIDES || {}, MAPS = D.maps;
+// If the illustrations file has not loaded (old cached copy), fall back to plain colour panels instead of failing.
+const ART = window.BJB_ART || { scene: () => "", building: () => "", watch: () => {} };
+D.places = D.places || []; D.contact = D.contact || "sfnu1@jh.edu"; D.reviewed = D.reviewed || "";
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -126,7 +129,7 @@ function card(it, i = 0, words = []){
         <a class="act" href="${esc(it.u)}" target="_blank" rel="noopener">Open ${svg("open")}</a>
         ${it.g && G[it.g] ? `<button class="act soft" type="button" data-guide="${it.g}">How to</button>` : ""}
       </div>
-      <div class="foot-row"><span class="checked">${svg("shield")}Checked ${esc(monthLabel(it.c || D.reviewed))}</span><a class="report" href="${reportHref(it.t)}">Report a problem</a></div>
+      <div class="foot-row"><span class="checked">${svg("shield")}Checked ${esc(monthLabel(it.c || D.reviewed) || "recently")}</span><a class="report" href="${reportHref(it.t)}">Report a problem</a></div>
     </div>
     <button class="star" type="button" data-fav="${esc(it.t)}" aria-pressed="${fav}" aria-label="${fav?"Remove from":"Add to"} favorites: ${esc(it.t)}">${svg("star")}</button>
   </article>`;
@@ -412,7 +415,14 @@ function render(quiet = false){
   const q = $("#q").value.trim();
   renderTabs(q);
   $("#main").classList.toggle("calm", quiet);
-  $("#main").innerHTML = q ? viewSearch(q) : tab === "home" ? viewHome() : tab === "guides" ? viewGuides() : viewSection(tab);
+  try {
+    $("#main").innerHTML = q ? viewSearch(q) : tab === "home" ? viewHome() : tab === "guides" ? viewGuides() : viewSection(tab);
+  } catch (err) {
+    // Show a way out instead of an empty page.
+    $("#main").innerHTML = `<div class="empty">Something did not load properly. <button class="pill primary" type="button" onclick="location.reload()">Reload</button></div>`;
+    console.error(err);
+    return;
+  }
   $$("#main .io").forEach(el => { if (quiet || !io) el.classList.add("in"); else io.observe(el); });
   ART.watch($("#main"));
   setSky(); heroCta();

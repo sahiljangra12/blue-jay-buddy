@@ -116,3 +116,9 @@ window.BJB.places = [
   { key: "museum",  title: "Homewood Museum", caption: "The 1801 house the campus is named after." },
   { key: "gate",    title: "East Gate", caption: "The Charles Street entrance." },
 ];
+
+// Compatibility for browsers still running an older cached app.js (which expected photos).
+// Empty entries make the old code skip the photos instead of failing. Safe to delete after a few weeks.
+window.BJB.photos = ["hero","gilman","brody","mse","keyser","decker","shriver","merg","museum","gate"]
+  .map(key => ({ key, title: "", caption: "", src: () => "", credit: "", page: "#" }));
+window.BJB.buildingPhoto = {};
