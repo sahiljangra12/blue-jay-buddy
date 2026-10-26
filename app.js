@@ -7,6 +7,8 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt
 const strip = s => String(s).replace(/<[^>]+>/g, "");
 const DAY = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+const PH = Object.fromEntries(D.photos.map(p => [p.key, p]));
+const onImg = `onload="this.classList.add('loaded')" onerror="this.remove()"`;
 
 /* ================= storage (this device only) ================= */
 const store = {
@@ -36,46 +38,61 @@ const ICON = {
   close:'<path d="M18 6 6 18M6 6l12 12"/>',
   check:'<path d="M20 6 9 17l-5-5"/>',
   copy:'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+  video:'<rect x="2" y="6" width="14" height="12" rx="2"/><path d="m16 10 6-3v10l-6-3z"/>',
+  edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  trash:'<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>',
 };
 const svg = (name, attrs = "") => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${attrs}>${ICON[name]}</svg>`;
 const initials = n => n.replace(/^(Ralph S\.|Milton S\.)\s*/,"").split(/\s+/).filter(w=>/^[A-Z]/.test(w)).slice(0,2).map(w=>w[0]).join("");
 const telOf = p => "tel:" + p.replace(/\D/g, "");
+const safeUrl = u => /^https?:\/\//i.test(u || "") ? u : (u ? "https://" + u : "");
 
 /* ================= state ================= */
 let profile = store.get("bjb-profile", null);
 let favs = new Set(store.get("bjb-favs", []));
 let doneSet = new Set(store.get("bjb-done", []));
 let classes = store.get("bjb-classes", null);
-const exampleClasses = () => [
-  {id:1,name:"Data Structures",days:[1,3],start:"10:30",end:"11:45",bldg:"Malone Hall",room:"228",ex:true},
-  {id:2,name:"Applied Statistics",days:[2,4],start:"13:30",end:"14:45",bldg:"Hodson Hall",room:"110",ex:true},
+if (classes === null) classes = [
+  {id:1,name:"Data Structures",mode:"inperson",days:[1,3],start:"10:30",end:"11:45",bldg:"Malone Hall",room:"228",ex:true},
+  {id:2,name:"Applied Statistics",mode:"online",days:[2,4],start:"13:30",end:"14:45",link:"",ex:true},
 ];
-if (classes === null) classes = exampleClasses();
+classes.forEach(c => { if (!c.mode) c.mode = "inperson"; });
 const realClasses = () => classes.filter(c => !c.ex);
 const saveClasses = () => store.set("bjb-classes", classes);
+const where = c => c.mode === "online" ? "Online" : `${c.bldg}${c.room ? ", room " + c.room : ""}${c.mode === "hybrid" ? " · hybrid" : ""}`;
 
 const validTabs = ["home", "guides", ...D.sections.map(s => s.id)];
 let tab = validTabs.includes(location.hash.slice(1)) ? location.hash.slice(1) : "home";
 
-/* ================= theme + sky ================= */
+/* ================= theme, greeting, hero photo ================= */
 function applyTheme(t){ t ? document.documentElement.setAttribute("data-theme", t) : document.documentElement.removeAttribute("data-theme"); }
 applyTheme(store.get("bjb-theme", null));
 $("#themeBtn").addEventListener("click", () => {
   const dark = document.documentElement.getAttribute("data-theme") === "dark" ||
     (!document.documentElement.hasAttribute("data-theme") && matchMedia("(prefers-color-scheme: dark)").matches);
   const next = dark ? "light" : "dark";
-  applyTheme(next); store.set("bjb-theme", next); toast(next === "dark" ? "Dark mode on" : "Light mode on");
+  applyTheme(next); store.set("bjb-theme", next); toast(next === "dark" ? "Dark mode" : "Light mode");
 });
 function setSky(){
   const h = new Date().getHours();
   document.body.dataset.sky = h >= 5 && h < 8 ? "dawn" : h >= 8 && h < 17 ? "day" : h >= 17 && h < 20 ? "dusk" : "night";
   const g = h < 5 ? "Up late" : h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : h < 21 ? "Good evening" : "Good night";
-  const who = profile?.name ? profile.name : "Blue Jay";
-  $("#greet").textContent = `${g}, ${who} · ${new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})}`;
+  $("#greet").textContent = `${g}${profile?.name ? ", " + profile.name : ""} · ${new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})}`;
 }
 function heroCta(){
-  $("#planBtn").innerHTML = profile ? `${svg("sparkle")}Edit my plan` : `${svg("sparkle")}Make it mine <span class="pill">1 min</span>`;
+  $("#planBtn").innerHTML = profile ? `${svg("edit")}Edit my plan` : `${svg("sparkle")}Make it mine <span class="tag">1 min</span>`;
+  $("#navPlanBtn").textContent = profile ? "My plan" : "Make it mine";
 }
+(function heroPhoto(){
+  const p = PH.hero, img = $("#heroPhoto"), w = Math.min(2400, Math.round(innerWidth * (devicePixelRatio || 1) / 400) * 400 || 1600);
+  img.onload = () => { img.classList.add("loaded"); $("#heroCredit").innerHTML = `Photo: <a href="${p.page}" target="_blank" rel="noopener">${esc(p.title)}, ${esc(p.credit)}</a>`; };
+  img.onerror = () => img.remove();
+  img.src = p.src(Math.max(1200, w));
+})();
+$("#credits").innerHTML = D.photos.map(p => `<li><a href="${p.page}" target="_blank" rel="noopener">${esc(p.title)}</a> · ${esc(p.credit)}</li>`).join("") +
+  `<li>Illustrations and the Blue Jay Buddy mark are original artwork for this project.</li>`;
 
 /* ================= quick actions ================= */
 function renderQuick(){
@@ -100,6 +117,7 @@ const mins = hm => { const [h,m] = hm.split(":").map(Number); return h*60+m; };
 const rx = w => new RegExp(`(${w.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")})`,"ig");
 const highlight = (text, words) => { let out = esc(text); words.forEach(w => { if (w.length > 1) out = out.replace(rx(w), "<mark>$1</mark>"); }); return out; };
 const itemByTitle = t => D.items.find(i => i.t === t);
+const head = (eyebrow, title, intro = "", right = "") => `<div class="sec-head"><div>${eyebrow ? `<span class="eyebrow">${eyebrow}</span>` : ""}<h2>${title}</h2>${intro ? `<p class="intro">${intro}</p>` : ""}</div>${right}</div>`;
 
 function card(it, i = 0, words = []){
   const fav = favs.has(it.t);
@@ -111,17 +129,18 @@ function card(it, i = 0, words = []){
       <p class="d">${highlight(it.d, words)}</p>
       ${phone ? `<div class="meta">${phone}</div>` : ""}
       <div class="actions">
-        <a class="act" href="${esc(it.u)}" target="_blank" rel="noopener">${svg("open")}Open</a>
-        ${it.g && G[it.g] ? `<button class="act soft" type="button" data-guide="${it.g}">${svg("guide")}How to</button>` : ""}
+        <a class="act" href="${esc(it.u)}" target="_blank" rel="noopener">Open ${svg("open")}</a>
+        ${it.g && G[it.g] ? `<button class="act soft" type="button" data-guide="${it.g}">How to</button>` : ""}
       </div>
     </div>
     <button class="star" type="button" data-fav="${esc(it.t)}" aria-pressed="${fav}" aria-label="${fav?"Remove from":"Add to"} favorites: ${esc(it.t)}">${svg("star")}</button>
   </article>`;
 }
 function bCard([n, type], i = 0, words = []){
+  const p = PH[D.buildingPhoto[n]];
   return `<a class="card bcard reveal" style="--i:${i}" href="${MAPS(n)}" target="_blank" rel="noopener">
-    <span class="badge b-map">${esc(initials(n))}</span>
-    <div class="card-body"><h3 class="t">${highlight(n, words)}</h3><div class="meta"><span class="chip">${esc(type)}</span><span class="note">${svg("walk",'width="14" height="14"')} Directions</span></div></div>
+    <div class="bimg">${p ? `<img src="${p.src(640)}" alt="${esc(n)}" loading="lazy" ${onImg}>` : ""}<span class="mono">${esc(initials(n))}</span></div>
+    <div class="card-body"><h3 class="t">${highlight(n, words)}</h3><div class="meta"><span class="chip">${esc(type)}</span><span class="note">Directions ›</span></div></div>
   </a>`;
 }
 function guideCard(id, i = 0, words = []){
@@ -131,6 +150,14 @@ function guideCard(id, i = 0, words = []){
     <div class="card-body"><h3 class="t">${highlight(g.title, words)}</h3><p class="d">${esc(g.who)}</p>
     <div class="meta"><span class="chip">${esc(g.time)}</span>${g.apps ? `<span class="chip app">Has an app</span>` : ""}</div></div>
   </button>`;
+}
+function bento(){
+  const keys = ["keyser","brody","mse","decker","gilman","shriver","museum","gate"];
+  return `<section class="io" aria-labelledby="h-campus">${head("Your campus","Homewood, up close.","Tap a place for walking directions.")}
+    <div class="bento">${keys.map(k => { const p = PH[k]; return `<figure class="ph">
+      <img src="${p.src(k === "keyser" ? 1400 : 800)}" alt="${esc(p.title)}" loading="lazy" ${onImg}>
+      <figcaption><b>${esc(p.title)}</b><span>${esc(p.caption)}</span></figcaption>
+      <a href="${MAPS(p.title)}" target="_blank" rel="noopener" aria-label="Directions to ${esc(p.title)}"></a></figure>`; }).join("")}</div></section>`;
 }
 
 /* ================= personalization ================= */
@@ -143,7 +170,7 @@ const CHECK = {
   transloc:{label:"Install TransLoc for shuttles", g:"transloc"},
   livesafe:{label:"Install LiveSafe", g:"livesafe"},
   emergency:{label:"Save the campus emergency number", g:"emergency"},
-  classes:{label:"Add your classes to My week", action:"week"},
+  classes:{label:"Add your classes to My week", action:"addclass"},
   groups:{label:"Join one club in Hopkins Groups", g:"groups"},
   sis:{label:"Check SIS for holds and your registration date", g:"sis"},
   handshake:{label:"Set up your Handshake profile", g:"handshake"},
@@ -153,15 +180,14 @@ const CHECK = {
 };
 function checklistIds(p){
   if (!p) return [];
-  const ids = [];
-  const isNew = p.status === "new";
+  const ids = [], isNew = p.status === "new";
   if (isNew) ids.push("jhed","wifi","jcard","canvas");
   if (p.intl) ids.push("ois");
   if (realClasses().length === 0) ids.push("classes");
   if (isNew || p.travel?.includes("shuttle") || p.live !== "oncampus") ids.push("transloc");
   ids.push("emergency");
   if (isNew) ids.push("livesafe");
-  if (p.live !== "oncampus") ids.push("bluejay");
+  if (p.live && p.live !== "oncampus") ids.push("bluejay");
   if (!isNew) ids.push("sis");
   if (p.interests?.includes("career")) ids.push("handshake");
   if (p.interests?.includes("clubs") || isNew) ids.push("groups");
@@ -171,14 +197,13 @@ function checklistIds(p){
 }
 function picksFor(p){
   if (!p) return [];
-  const t = [];
-  const I = p.interests || [], diet = p.diet || [];
+  const t = [], I = p.interests || [], diet = p.diet || [];
   if (p.intl) t.push("International Services (OIS)");
   if (p.level === "masters" || p.level === "phd") t.push("Homewood Graduate Affairs", "Graduate Representative Organization");
   if (p.school === "wse") t.push("Engineering Advising");
   if (p.school === "ksas") t.push("Arts & Sciences Advising");
   if (p.travel?.includes("shuttle") || p.live === "commute") t.push("The JHMI shuttle (\"the Jimmy\")");
-  if (p.live !== "oncampus") t.push("Blue Jay Shuttle & Night Ride", "Safety escort");
+  if (p.live && p.live !== "oncampus") t.push("Blue Jay Shuttle & Night Ride", "Safety escort");
   if (I.includes("fitness")) t.push("O'Connor Rec Center");
   if (I.includes("clubs")) t.push("Hopkins Groups");
   if (I.includes("career")) t.push("Handshake", "Life Design Lab");
@@ -188,7 +213,7 @@ function picksFor(p){
   if (I.includes("food") || diet.length) t.push("Cheap eats nearby", "Order ahead");
   if (diet.includes("halal")) t.push("Hopkins Café");
   if (I.includes("wellbeing")) t.push("Mental Health Services");
-  return [...new Set(t)].map(itemByTitle).filter(Boolean).slice(0, 8);
+  return [...new Set(t)].map(itemByTitle).filter(Boolean).slice(0, 6);
 }
 
 /* ================= next class ================= */
@@ -207,38 +232,43 @@ function nextClass(){
   }
   return null;
 }
+function classGo(c, cls = "pill light"){
+  if (c.mode === "online") return c.link ? `<a class="${cls}" href="${esc(safeUrl(c.link))}" target="_blank" rel="noopener">${svg("video")}Join class</a>` : `<button class="${cls}" type="button" data-edit="${c.id}">${svg("video")}Add meeting link</button>`;
+  return `<a class="${cls}" href="${MAPS(c.bldg)}" target="_blank" rel="noopener">${svg("walk")}Walk there</a>`;
+}
 
 /* ================= views ================= */
 function viewHome(){
   const n = nextClass(), today = new Date().getDay();
   const nextTile = n ? `
-      <span class="eyebrow">Up next${n.c.ex ? " · example" : ""}</span>
+      <span class="eyebrow">Up next${n.c.ex ? " · example class" : ""}</span>
+      ${n.c.mode === "online" ? `<span class="online-badge">${svg("video",'width="14" height="14"')}Online</span>` : ""}
       <span class="big">${esc(n.c.name)}</span>
-      <span class="sub">${esc(n.when)} · ${esc(n.c.bldg)}${n.c.room ? ", room "+esc(n.c.room) : ""}</span>
-      ${n.startsIn !== null ? `<span class="count">starts in ${Math.floor(n.startsIn/60) ? Math.floor(n.startsIn/60)+"h " : ""}${n.startsIn%60}m${n.startsIn <= 15 ? " · time to walk" : ""}</span>` : ""}
-      <div class="row"><a class="btn-w" href="${MAPS(n.c.bldg)}" target="_blank" rel="noopener">${svg("walk",'width="16" height="16"')}Walk there</a><button class="btn-w ghost" type="button" data-go="week">${n.c.ex ? "Add my classes" : "My week"}</button></div>`
-    : `<span class="eyebrow">Up next</span><span class="big">No classes this week</span><span class="sub">Add your timetable to see what's next.</span>
-       <div class="row"><button class="btn-w" type="button" data-go="week">Add a class</button></div>`;
+      <span class="sub">${esc(n.when)} · ${esc(where(n.c))}</span>
+      ${n.startsIn !== null ? `<span class="count">Starts in ${Math.floor(n.startsIn/60) ? Math.floor(n.startsIn/60)+"h " : ""}${n.startsIn%60}m${n.startsIn <= 15 ? (n.c.mode==="online" ? " · time to log on" : " · time to walk") : ""}</span>` : ""}
+      <div class="row">${n.c.ex ? `<button class="pill light" type="button" data-addclass>${svg("plus")}Add my classes</button>` : classGo(n.c)}<button class="pill glass" type="button" data-go="week">My week</button></div>`
+    : `<span class="eyebrow">Up next</span><span class="big">No classes this week.</span><span class="sub">Add your timetable to see what's next.</span>
+       <div class="row"><button class="pill light" type="button" data-addclass>${svg("plus")}Add a class</button></div>`;
 
   const ids = checklistIds(profile), done = ids.filter(id => doneSet.has(id)).length;
   const pct = ids.length ? Math.round(done / ids.length * 100) : 0;
   const second = profile ? `
     <div class="tile checklist reveal" style="--i:1">
-      <div class="cl-head"><div><span class="eyebrow">${profile.status === "new" ? "Your first-weeks checklist" : "Your checklist"}</span>
+      <div class="cl-head"><div><span class="eyebrow">${profile.status === "new" ? "Your first weeks" : "Your checklist"}</span>
         <span class="cl-count">${done} of ${ids.length} done</span></div>
         <span class="ring" style="--p:${pct}"><span>${pct}%</span></span></div>
       <ul class="cl">${ids.map(id => `<li class="${doneSet.has(id)?"done":""}">
         <button class="tick" type="button" data-tick="${id}" aria-pressed="${doneSet.has(id)}" aria-label="Mark done: ${esc(CHECK[id].label)}">${svg("check")}</button>
         <span>${esc(CHECK[id].label)}</span>
-        ${CHECK[id].g ? `<button class="mini" type="button" data-guide="${CHECK[id].g}">How</button>` : `<button class="mini" type="button" data-go="${CHECK[id].action}">Open</button>`}
+        ${CHECK[id].g ? `<button class="mini" type="button" data-guide="${CHECK[id].g}">How</button>` : `<button class="mini" type="button" data-addclass>Add</button>`}
       </li>`).join("")}</ul>
     </div>`
   : `<div class="tile setup reveal" style="--i:1">
       <span class="eyebrow">Make Blue Jay Buddy yours</span>
-      <span class="big2">Answer 5 quick questions and get your own plan.</span>
-      <ul class="bul"><li>A checklist for your first weeks or new semester</li><li>Your classes with "up next" and directions</li><li>Picks for your program, home and interests</li></ul>
-      <button class="btn" type="button" data-wizard>${svg("sparkle",'width="18" height="18"')}Make it mine</button>
-      <span class="note">Takes about a minute. Stays on this device.</span>
+      <span class="big2">Five quick questions. One plan made for you.</span>
+      <ul class="bul"><li>A checklist for your first weeks or new semester</li><li>Your classes, in person or online, with "up next"</li><li>Picks for your program, home and interests</li></ul>
+      <button class="pill primary" type="button" data-wizard>${svg("sparkle")}Make it mine</button>
+      <span class="note">About a minute. Stays on this device.</span>
     </div>`;
 
   const picks = picksFor(profile);
@@ -252,31 +282,33 @@ function viewHome(){
     ${second}
   </section>
 
-  ${picks.length ? `<section aria-labelledby="h-picks"><div class="sec-head"><div><h2 id="h-picks">Picked for you</h2><p class="intro">Based on your answers. <button class="linkbtn" type="button" data-wizard>Change answers</button></p></div></div>
+  ${picks.length ? `<section class="io">${head("For you","Picked for you.",`Based on your answers. <button class="linkbtn" type="button" data-wizard>Change answers</button>`)}
     <div class="grid">${picks.map((it,i) => card(it,i)).join("")}</div></section>` : ""}
 
-  ${favItems.length ? `<section aria-labelledby="h-fav"><div class="sec-head"><div><h2 id="h-fav">Your favorites</h2><p class="intro">Pinned with the star.</p></div></div>
+  ${favItems.length ? `<section class="io">${head("Pinned","Your favorites.","Tap the star on any card to pin it here.")}
     <div class="grid">${favItems.map((it,i) => card(it,i)).join("")}</div></section>` : ""}
 
-  <section aria-labelledby="h-start"><div class="sec-head"><div><h2 id="h-start">${profile?.status === "returning" ? "Handy how-tos" : "Start here"}</h2><p class="intro">Short step-by-step guides. Tap one to open it.</p></div><button class="linkbtn" type="button" data-tab="guides">All guides →</button></div>
+  <section class="io">${head("Guides", profile?.status === "returning" ? "Handy how-tos." : "New here? Start here.", "Short, step-by-step and with app links.", `<button class="linkbtn more" type="button" data-tab="guides">All guides ›</button>`)}
     <div class="grid">${startGuides.map((id,i) => guideCard(id,i)).join("")}</div></section>
 
-  ${picks.length ? "" : `<section aria-labelledby="h-most"><div class="sec-head"><div><h2 id="h-most">Most used</h2><p class="intro">What students open every week.</p></div></div>
+  ${bento()}
+
+  ${picks.length ? "" : `<section class="io">${head("Every week","Most used.","What students open all the time.")}
     <div class="grid">${most.map((it,i) => card(it,i)).join("")}</div></section>`}
 
   ${viewWeek()}
 
-  <section class="dash2" aria-label="Rec center and sections">
-    <div class="tile reveal">
+  <section class="dash2 io" aria-label="Rec center and sections">
+    <div class="tile">
       <span class="eyebrow">O'Connor Rec Center</span>
       <table class="hours">${D.recHours.map((h,i) => `<tr class="${i===today?"today":""}"><td>${DAY[i]}${i===today?" · today":""}</td><td>${h}</td></tr>`).join("")}</table>
-      <a class="note" href="https://studentaffairs.jhu.edu/recreation/ralph-s-oconnor-recreation-center/hours-of-operation" target="_blank" rel="noopener">Posted hours. Check today's official hours ↗</a>
+      <a class="note" href="https://studentaffairs.jhu.edu/recreation/ralph-s-oconnor-recreation-center/hours-of-operation" target="_blank" rel="noopener">Posted hours. Check today's ›</a>
     </div>
     <div>
-      <div class="sec-head"><div><h2>Explore</h2><p class="intro">Every section, one tap away.</p></div></div>
+      ${head("Explore","Everything else.")}
       <div class="grid explore">${D.sections.map((s,i) => {
         const count = s.id === "map" ? D.buildings.length : D.items.filter(x => x.cat === s.id).length;
-        return `<button class="card ecard reveal" style="--i:${i}" type="button" data-tab="${s.id}">
+        return `<button class="card ecard" type="button" data-tab="${s.id}">
           <span class="badge b-${s.id}">${s.id==="map" ? "MAP" : svg(s.id)}</span>
           <div class="card-body"><h3 class="t">${esc(s.label)}</h3><p class="d">${count} ${s.id==="map"?"buildings":"links"}</p></div></button>`;
       }).join("")}</div>
@@ -287,51 +319,61 @@ function viewHome(){
 function viewWeek(){
   const today = new Date().getDay(), hasEx = classes.some(c => c.ex);
   return `
-  <section id="week" aria-labelledby="h-week">
-    <div class="sec-head">
-      <div><h2 id="h-week">My week</h2><p class="intro">${hasEx ? "These two are examples. Add your first class and they disappear. " : ""}Saved only on this device.</p></div>
-      <button class="btn sec" type="button" id="icsBtn">${svg("open",'width="16" height="16"')}Add to my calendar</button>
-    </div>
-    <div class="planner">
-      ${classForm("c")}
-      <div class="week">${[1,2,3,4,5].map(d => {
-        const list = classes.filter(c => c.days.includes(d)).sort((a,b) => mins(a.start) - mins(b.start));
-        return `<div class="day${d===today?" is-today":""}${list.length?"":" empty"}"><h4>${DAY[d].slice(0,3)}${d===today?" · today":""}</h4>${list.length ? list.map(c => `
-          <div class="cls${c.ex?" example":""}"><b>${esc(c.name)}</b><span class="tm">${fmt(c.start)}–${fmt(c.end)}</span><span>${esc(c.bldg)}${c.room?" "+esc(c.room):""}</span>
-          <span class="acts"><a href="${MAPS(c.bldg)}" target="_blank" rel="noopener">Map</a><button type="button" data-del="${c.id}">Remove</button></span></div>`).join("") : `<span class="note">Free</span>`}</div>`;
-      }).join("")}</div>
-    </div>
+  <section id="week" class="io">
+    ${head("Schedule","My week.", `${hasEx ? "The two classes shown are examples. Add yours and they disappear. " : ""}Tap Edit to change any class. Saved only on this device.`,
+      `<div class="week-actions"><button class="pill primary" type="button" data-addclass>${svg("plus")}Add a class</button><button class="pill secondary" type="button" id="icsBtn">${svg("cal")}Add to my calendar</button></div>`)}
+    <div class="week">${[1,2,3,4,5].map(d => {
+      const list = classes.filter(c => c.days.includes(d)).sort((a,b) => mins(a.start) - mins(b.start));
+      return `<div class="day${d===today?" is-today":""}${list.length?"":" empty"}"><h4>${DAY[d].slice(0,3)}${d===today?" · Today":""}</h4>${list.length ? list.map(c => `
+        <div class="cls${c.ex?" example":""}${c.mode==="online"?" online":""}"><b>${esc(c.name)}</b><span class="tm">${fmt(c.start)} – ${fmt(c.end)}</span><span>${c.mode==="online" ? `${svg("video",'width="13" height="13"')} Online` : esc(where(c))}</span>
+        <span class="acts">${classGo(c, "mini")}<button class="mini" type="button" data-edit="${c.id}">${svg("edit")}Edit</button></span></div>`).join("") : `<span class="note">Free</span>`}</div>`;
+    }).join("")}</div>
   </section>`;
 }
-function classForm(px, compact = false){
-  return `<form class="addc ${compact ? "" : "tile"}" data-classform="${px}">
-    <label for="${px}-name">Course name<input id="${px}-name" required placeholder="e.g. Machine Learning" maxlength="60"></label>
-    <div><span class="lbl">Days</span><div class="days" role="group" aria-label="Days">${["Mon","Tue","Wed","Thu","Fri"].map((d,i)=>`<label><input type="checkbox" id="${px}-d${i+1}" value="${i+1}"><span>${d}</span></label>`).join("")}</div></div>
-    <div class="row2"><label for="${px}-start">Starts<input id="${px}-start" type="time" required value="09:00"></label><label for="${px}-end">Ends<input id="${px}-end" type="time" required value="10:15"></label></div>
-    <div class="row2">
-      <label for="${px}-bldg">Building<select id="${px}-bldg">${D.buildings.map(([b])=>`<option>${esc(b)}</option>`).join("")}</select></label>
-      <label for="${px}-room">Room<input id="${px}-room" placeholder="e.g. 228" maxlength="12"></label>
+
+/* class form: in person / online / hybrid. Used for add, edit and inside the setup. */
+function classForm(px, c = null, compact = false){
+  const v = c || {mode:"inperson", days:[], start:"09:00", end:"10:15", bldg:"Malone Hall", room:"", link:""};
+  const mode = v.mode || "inperson";
+  return `<form class="addc" data-classform="${px}" ${c && !c.ex ? `data-editing="${c.id}"` : ""}>
+    <label for="${px}-name">Course name<input id="${px}-name" required placeholder="e.g. Machine Learning" maxlength="60" value="${esc(c && !c.ex ? v.name : "")}"></label>
+    <div><span class="lbl">How does it meet?</span><div class="seg" role="radiogroup" aria-label="How does it meet">
+      ${[["inperson","In person"],["online","Online"],["hybrid","Hybrid"]].map(([m,l]) => `<label><input type="radio" name="${px}-mode" value="${m}" ${mode===m?"checked":""}><span>${l}</span></label>`).join("")}
+    </div></div>
+    <div><span class="lbl">Days</span><div class="days" role="group" aria-label="Days">${["Mon","Tue","Wed","Thu","Fri"].map((d,i)=>`<label><input type="checkbox" id="${px}-d${i+1}" value="${i+1}" ${v.days.includes(i+1)?"checked":""}><span>${d}</span></label>`).join("")}</div></div>
+    <div class="row2"><label for="${px}-start">Starts<input id="${px}-start" type="time" required value="${esc(v.start)}"></label><label for="${px}-end">Ends<input id="${px}-end" type="time" required value="${esc(v.end)}"></label></div>
+    <div class="row2" data-show="place" ${mode==="online"?"hidden":""}>
+      <label for="${px}-bldg">Building<select id="${px}-bldg">${D.buildings.map(([b])=>`<option ${b===v.bldg?"selected":""}>${esc(b)}</option>`).join("")}</select></label>
+      <label for="${px}-room">Room<input id="${px}-room" placeholder="e.g. 228" maxlength="12" value="${esc(v.room||"")}"></label>
     </div>
+    <label for="${px}-link" data-show="link" ${mode==="inperson"?"hidden":""}>Meeting link <span class="note">(Zoom, Teams…) optional</span><input id="${px}-link" type="url" inputmode="url" placeholder="https://jhubluejays.zoom.us/j/…" value="${esc(v.link||"")}"></label>
     ${compact ? "" : `<label for="${px}-until">Last day of classes<input id="${px}-until" type="date" value="${esc(store.get("bjb-until","2026-12-11"))}"></label>`}
-    <button class="btn" type="submit">Add class</button>
+    <div class="sheet-actions">
+      <button class="pill primary" type="submit">${c && !c.ex ? `${svg("check")}Save changes` : `${svg("plus")}Add class`}</button>
+      ${c && !c.ex && !compact ? `<button class="pill ghost" type="button" data-del="${c.id}">${svg("trash")}Delete</button>` : ""}
+    </div>
     <span class="note msg" role="status"></span>
   </form>`;
 }
-
-function viewGuides(words){
-  const groups = [["start","New here? Start with these"],["everyday","Everyday how-tos"],["health","Health and safety"]];
-  return `<section><div class="sec-head"><div><h2>Guides</h2><p class="intro">Step-by-step help for the things every Hopkins student has to figure out, with app download links.</p></div></div></section>
-  ${groups.map(([g,label]) => `<section><h3 class="subhead">${label}</h3><div class="grid">${Object.keys(G).filter(id => G[id].group === g).map((id,i) => guideCard(id,i)).join("")}</div></section>`).join("")}`;
+function classSheet(c = null){
+  openSheet(`${c ? "" : ""}<div class="wiz-top"><span class="eyebrow">${c ? "Edit class" : "New class"}</span><button class="iconx" type="button" data-close aria-label="Close">${svg("close")}</button></div>
+    <h2 id="sheetTitle">${c ? esc(c.name) : "Add a class"}</h2>${classForm("cf", c)}`);
 }
 
+function viewGuides(){
+  const groups = [["start","Start here","New to Hopkins? Do these first."],["everyday","Everyday","Things you will do every week."],["health","Health and safety","Read these before you need them."]];
+  return `<section>${head("Guides","How to do anything at Hopkins.","Step-by-step help with app download links, written for new and returning students.")}</section>
+  ${groups.map(([g,label,sub]) => `<section class="io"><h3 class="subhead">${label} <span class="note">· ${sub}</span></h3><div class="grid">${Object.keys(G).filter(id => G[id].group === g).map((id,i) => guideCard(id,i)).join("")}</div></section>`).join("")}`;
+}
 function viewSection(id){
   const s = D.sections.find(x => x.id === id);
   const body = id === "map" ? D.buildings.map((b,i) => bCard(b,i)).join("") : D.items.filter(i => i.cat === id).map((it,i) => card(it,i)).join("");
   const related = id === "map" ? [] : [...new Set(D.items.filter(i => i.cat === id && i.g).map(i => i.g))];
-  return `<section aria-labelledby="h-sec"><div class="sec-head"><div><h2 id="h-sec">${esc(s.label)}</h2><p class="intro">${esc(s.intro)}</p></div></div><div class="grid">${body}</div></section>
-  ${related.length ? `<section><h3 class="subhead">How-to guides for ${esc(s.label.toLowerCase())}</h3><div class="grid">${related.map((g,i) => guideCard(g,i)).join("")}</div></section>` : ""}`;
+  return `<section>${head(s.label, esc(s.label) + ".", esc(s.intro))}<div class="grid">${body}</div></section>
+  ${id === "academics" ? viewWeek() : ""}
+  ${id === "map" ? bento() : ""}
+  ${related.length ? `<section class="io"><h3 class="subhead">How-to guides</h3><div class="grid">${related.map((g,i) => guideCard(g,i)).join("")}</div></section>` : ""}`;
 }
-
 function viewSearch(q){
   const words = q.toLowerCase().split(/\s+/).filter(Boolean);
   const hit = h => words.every(w => h.includes(w));
@@ -340,14 +382,19 @@ function viewSearch(q){
   const guides = Object.keys(G).map(id => [id, score(G[id].title, (G[id].title+" "+G[id].who+" "+strip(G[id].steps.join(" "))+" "+(G[id].apps||[]).map(a=>a.name).join(" ")).toLowerCase())]).filter(x => x[1] >= 0).sort((a,b)=>b[1]-a[1]).map(x=>x[0]);
   const blds = D.buildings.filter(b => hit((b[0]+" "+b[1]).toLowerCase()));
   const total = items.length + guides.length + blds.length;
-  if (!total) return `<div class="empty">Nothing matches "${esc(q)}". Try a simpler word like "shuttle", "food", "ID", "print" or a building name.</div>`;
-  return `<section><div class="sec-head"><div><h2>Results for "${esc(q)}"</h2><p class="intro">${total} found. Press Esc to clear.</p></div></div>
+  if (!total) return `<div class="empty">Nothing matches "${esc(q)}".<br>Try a simpler word like "shuttle", "food", "ID", "print" or a building name.</div>`;
+  return `<section>${head("Search", `Results for “${esc(q)}”.`, `${total} found. Press Esc to clear.`)}
     ${guides.length ? `<h3 class="subhead">Guides</h3><div class="grid">${guides.slice(0,6).map((g,i) => guideCard(g,i,words)).join("")}</div>` : ""}
-    ${items.length ? `<h3 class="subhead">Places and links</h3><div class="grid">${items.map((it,i) => card(it,i,words)).join("")}</div>` : ""}
-    ${blds.length ? `<h3 class="subhead">Buildings</h3><div class="grid">${blds.map((b,i) => bCard(b,i,words)).join("")}</div>` : ""}</section>`;
+    ${items.length ? `<h3 class="subhead" style="margin-top:28px">Places and links</h3><div class="grid">${items.map((it,i) => card(it,i,words)).join("")}</div>` : ""}
+    ${blds.length ? `<h3 class="subhead" style="margin-top:28px">Buildings</h3><div class="grid">${blds.map((b,i) => bCard(b,i,words)).join("")}</div>` : ""}</section>`;
 }
 
 /* ================= render ================= */
+let io = null;
+if ("IntersectionObserver" in window && !reduced()){
+  document.documentElement.classList.add("js-io");
+  io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } }), {rootMargin:"0px 0px -8% 0px", threshold:.05});
+}
 function renderTabs(q){
   $("#tabs").innerHTML = [["home","Home"],["guides","Guides"], ...D.sections.map(s => [s.id, s.label])]
     .map(([id,l]) => `<button class="tab" role="tab" type="button" data-tab="${id}" aria-selected="${!q && id===tab}">${esc(l)}</button>`).join("");
@@ -359,6 +406,7 @@ function render(quiet = false){
   renderTabs(q);
   $("#main").classList.toggle("calm", quiet);
   $("#main").innerHTML = q ? viewSearch(q) : tab === "home" ? viewHome() : tab === "guides" ? viewGuides() : viewSection(tab);
+  $$("#main .io").forEach(el => { if (quiet || !io) el.classList.add("in"); else io.observe(el); });
   setSky(); heroCta();
 }
 function go(t, scroll = true){
@@ -370,113 +418,112 @@ function go(t, scroll = true){
 
 /* ================= toast / copy ================= */
 let toastT;
-function toast(msg){ const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("show"), 2000); }
+function toast(msg){ const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("show"), 2200); }
 async function copy(text){ try { await navigator.clipboard.writeText(text); toast("Copied " + text); } catch { toast(text); } }
 
 /* ================= sheet (popup) ================= */
 const sheet = $("#sheet"), sheetBody = $("#sheetBody");
 let lastFocus = null;
 function openSheet(html, cls = ""){
-  lastFocus = document.activeElement;
+  if (!sheet.open) lastFocus = document.activeElement;
   sheetBody.innerHTML = html;
   sheet.className = "sheet " + cls;
   if (!sheet.open) sheet.showModal();
   sheetBody.scrollTop = 0;
-  const f = sheetBody.querySelector("[autofocus], .primary, button, a, input"); if (f) f.focus({preventScroll:true});
+  const f = sheetBody.querySelector("[autofocus], .primary, input, button, a"); if (f) f.focus({preventScroll:true});
 }
 function closeSheet(){
   if (!sheet.open) return;
   sheet.classList.add("closing");
-  setTimeout(() => { sheet.close(); sheet.classList.remove("closing"); if (lastFocus) lastFocus.focus?.({preventScroll:true}); }, reduced() ? 0 : 180);
+  setTimeout(() => { sheet.close(); sheet.classList.remove("closing"); lastFocus?.focus?.({preventScroll:true}); }, reduced() ? 0 : 200);
 }
 sheet.addEventListener("click", e => { if (e.target === sheet) closeSheet(); });
 sheet.addEventListener("cancel", e => { e.preventDefault(); closeSheet(); });
 
 function callSheet(label, num){
-  openSheet(`
-    <div class="call-sheet">
-      <span class="call-ic ${/emergenc/i.test(label) ? "red" : ""}">${svg("phone")}</span>
-      <p class="eyebrow">Confirm call</p>
-      <h2>${esc(label)}</h2>
+  const red = /emergenc/i.test(label);
+  openSheet(`<div class="call-sheet">
+      <span class="call-ic ${red ? "red" : ""}">${svg("phone")}</span>
+      <span class="eyebrow">Confirm call</span>
+      <h2 id="sheetTitle">${esc(label)}</h2>
       <p class="num">${esc(num)}</p>
-      <p class="note">Tap <b>Call now</b> to place the call. On a laptop, dial this number on your phone.</p>
+      <p class="note">Tap Call now to dial. On a laptop, dial this number on your phone.</p>
       <div class="sheet-actions">
-        <a class="btn primary ${/emergenc/i.test(label) ? "danger" : ""}" href="${telOf(num)}" data-confirmed="1">${svg("phone",'width="18" height="18"')}Call now</a>
-        <button class="btn sec" type="button" data-copy="${esc(num)}">${svg("copy",'width="18" height="18"')}Copy number</button>
-        <button class="btn ghost" type="button" data-close>Cancel</button>
-      </div>
-    </div>`, "small");
+        <a class="pill primary big ${red ? "danger" : ""}" href="${telOf(num)}" data-confirmed="1">${svg("phone")}Call now</a>
+        <button class="pill secondary" type="button" data-copy="${esc(num)}">${svg("copy")}Copy number</button>
+        <button class="pill ghost" type="button" data-close>Cancel</button>
+      </div></div>`, "small");
 }
-
 function guideSheet(id){
   const g = G[id]; if (!g) return;
+  const cid = Object.keys(CHECK).find(k => CHECK[k].g === id);
+  const canTick = profile && cid && checklistIds(profile).includes(cid);
   openSheet(`
-    <div class="g-head">
-      <span class="badge b-guide big">${svg("guide")}</span>
-      <div><p class="eyebrow">Guide · ${esc(g.time)}</p><h2 id="sheetTitle">${esc(g.title)}</h2><p class="note">For: ${esc(g.who)}</p></div>
-    </div>
-    ${g.apps ? `<div class="apps">${g.apps.map(a => `<div class="app"><span class="app-name">Get the <b>${esc(a.name)}</b> app</span><div class="stores">
+    <div class="g-hero"><span class="badge b-guide">${svg("guide")}</span></div>
+    <div class="g-head"><span class="eyebrow">Guide · ${esc(g.time)}</span><h2 id="sheetTitle">${esc(g.title)}</h2><p class="note">For: ${esc(g.who)}</p></div>
+    ${g.apps ? `<div class="apps">${g.apps.map(a => `<div><span>Get the <b>${esc(a.name)}</b> app</span><div class="stores">
         <a class="store" href="${esc(a.ios)}" target="_blank" rel="noopener">${svg("apple")}<span><small>Download on the</small>App Store</span></a>
         <a class="store" href="${esc(a.android)}" target="_blank" rel="noopener">${svg("play")}<span><small>Get it on</small>Google Play</span></a></div></div>`).join("")}</div>` : ""}
     <ol class="steps">${g.steps.map(s => `<li>${s}</li>`).join("")}</ol>
-    ${g.tips ? `<div class="tips"><p class="eyebrow">Good to know</p><ul>${g.tips.map(t => `<li>${t}</li>`).join("")}</ul></div>` : ""}
+    ${g.tips ? `<div class="tips"><span class="eyebrow">Good to know</span><ul>${g.tips.map(t => `<li>${t}</li>`).join("")}</ul></div>` : ""}
     ${g.phones ? `<div class="g-phones">${g.phones.map(p => `<span class="phone"><b>${esc(p.t)}</b> ${esc(p.p)}<a class="mini call" href="${telOf(p.p)}" data-label="${esc(p.t)}" data-num="${esc(p.p)}">${svg("phone")}Call</a></span>`).join("")}</div>` : ""}
     <div class="sheet-actions">
-      ${g.link ? `<a class="btn primary" href="${esc(g.link.u)}" target="_blank" rel="noopener">${svg("open",'width="18" height="18"')}${esc(g.link.t)}</a>` : ""}
-      ${Object.values(CHECK).some(c => c.g === id) && profile ? (() => { const cid = Object.keys(CHECK).find(k => CHECK[k].g === id); return checklistIds(profile).includes(cid) ? `<button class="btn sec" type="button" data-tick="${cid}" data-close-after>${doneSet.has(cid) ? "Done ✓" : "Mark as done"}</button>` : ""; })() : ""}
-      <button class="btn ghost" type="button" data-close>Close</button>
+      ${g.link ? `<a class="pill primary" href="${esc(g.link.u)}" target="_blank" rel="noopener">${esc(g.link.t)} ${svg("open")}</a>` : ""}
+      ${canTick ? `<button class="pill secondary" type="button" data-tick="${cid}" data-close-after>${doneSet.has(cid) ? `${svg("check")}Done` : "Mark as done"}</button>` : ""}
+      <button class="pill ghost" type="button" data-close>Close</button>
     </div>`);
+}
+function settingsSheet(){
+  openSheet(`<div class="wiz-top"><span class="eyebrow">Settings</span><button class="iconx" type="button" data-close aria-label="Close">${svg("close")}</button></div>
+    <h2 id="sheetTitle">Your data</h2>
+    <p class="note">Everything Blue Jay Buddy remembers lives only in this browser. Nothing is uploaded.</p>
+    <div class="sheet-actions" style="flex-direction:column">
+      <button class="pill primary" type="button" data-wizard>${svg("edit")}Edit my plan</button>
+      <button class="pill secondary" type="button" data-addclass>${svg("plus")}Add a class</button>
+      <button class="pill ghost" type="button" data-reset="classes">Remove all my classes</button>
+      <button class="pill ghost" type="button" data-reset="all">Reset everything</button>
+    </div>`, "small");
+}
+function confirmReset(kind){
+  openSheet(`<div class="call-sheet"><span class="call-ic red">${svg("trash")}</span>
+    <h2 id="sheetTitle">${kind === "all" ? "Reset everything?" : "Remove all classes?"}</h2>
+    <p class="note">${kind === "all" ? "Your plan, classes, checklist and favorites will be cleared from this browser." : "Your classes will be cleared from this browser."} This can't be undone.</p>
+    <div class="sheet-actions"><button class="pill danger" type="button" data-reset-yes="${kind}">${kind === "all" ? "Reset everything" : "Remove classes"}</button><button class="pill ghost" type="button" data-close>Cancel</button></div></div>`, "small");
 }
 
 /* ================= setup wizard ================= */
 let draft = null, step = 0;
 const STEPS = ["About you","Your program","Getting around","Your classes","Interests"];
-function chip(name, value, label, type = "radio", checked = false){
-  return `<label class="opt"><input type="${type}" name="${name}" value="${value}" ${checked ? "checked" : ""}><span>${label}</span></label>`;
-}
+const chip = (name, value, label, type = "radio", checked = false) => `<label class="opt"><input type="${type}" name="${name}" value="${value}" ${checked ? "checked" : ""}><span>${label}</span></label>`;
 function wizStepHTML(){
-  const p = draft;
-  const has = (k, v) => Array.isArray(p[k]) ? p[k].includes(v) : p[k] === v;
+  const p = draft, has = (k, v) => Array.isArray(p[k]) ? p[k].includes(v) : p[k] === v;
   let body = "";
   if (step === 0) body = `
     <label class="field" for="w-name">What should we call you? <span class="opt-tag">Optional</span><input id="w-name" value="${esc(p.name||"")}" placeholder="First name" maxlength="30" autocomplete="given-name"></label>
-    <fieldset><legend>Are you new to Hopkins?</legend><div class="opts">
-      ${chip("status","new","I'm new this year","radio",has("status","new"))}${chip("status","returning","I've been here before","radio",has("status","returning"))}</div></fieldset>`;
+    <fieldset><legend>Are you new to Hopkins?</legend><div class="opts">${chip("status","new","I'm new this year","radio",has("status","new"))}${chip("status","returning","I've been here before","radio",has("status","returning"))}</div></fieldset>`;
   if (step === 1) body = `
-    <fieldset><legend>Your program</legend><div class="opts">
-      ${chip("level","undergrad","Undergraduate","radio",has("level","undergrad"))}${chip("level","masters","Master's","radio",has("level","masters"))}${chip("level","phd","PhD","radio",has("level","phd"))}${chip("level","other","Other","radio",has("level","other"))}</div></fieldset>
-    <fieldset><legend>Your school</legend><div class="opts">
-      ${chip("school","wse","Engineering (Whiting)","radio",has("school","wse"))}${chip("school","ksas","Arts & Sciences (Krieger)","radio",has("school","ksas"))}${chip("school","other","Another school","radio",has("school","other"))}</div></fieldset>
-    <fieldset><legend>Are you an international student (F-1 or J-1)?</legend><div class="opts">
-      ${chip("intl","yes","Yes","radio",p.intl === true)}${chip("intl","no","No","radio",p.intl === false)}</div></fieldset>`;
+    <fieldset><legend>Your program</legend><div class="opts">${chip("level","undergrad","Undergraduate","radio",has("level","undergrad"))}${chip("level","masters","Master's","radio",has("level","masters"))}${chip("level","phd","PhD","radio",has("level","phd"))}${chip("level","other","Other","radio",has("level","other"))}</div></fieldset>
+    <fieldset><legend>Your school</legend><div class="opts">${chip("school","wse","Engineering (Whiting)","radio",has("school","wse"))}${chip("school","ksas","Arts & Sciences (Krieger)","radio",has("school","ksas"))}${chip("school","other","Another school","radio",has("school","other"))}</div></fieldset>
+    <fieldset><legend>Are you an international student (F-1 or J-1)?</legend><div class="opts">${chip("intl","yes","Yes","radio",p.intl === true)}${chip("intl","no","No","radio",p.intl === false)}</div></fieldset>`;
   if (step === 2) body = `
-    <fieldset><legend>Where do you live?</legend><div class="opts">
-      ${chip("live","oncampus","On-campus housing","radio",has("live","oncampus"))}${chip("live","nearby","Off campus, near Homewood","radio",has("live","nearby"))}${chip("live","commute","Farther away, I commute","radio",has("live","commute"))}</div></fieldset>
-    <fieldset><legend>How do you get around? <span class="opt-tag">Pick any</span></legend><div class="opts">
-      ${[["walk","Walk"],["shuttle","JHU shuttles"],["bus","City bus"],["bike","Bike or scooter"],["car","Car"]].map(([v,l]) => chip("travel",v,l,"checkbox",has("travel",v))).join("")}</div></fieldset>`;
+    <fieldset><legend>Where do you live?</legend><div class="opts">${chip("live","oncampus","On-campus housing","radio",has("live","oncampus"))}${chip("live","nearby","Off campus, near Homewood","radio",has("live","nearby"))}${chip("live","commute","Farther away, I commute","radio",has("live","commute"))}</div></fieldset>
+    <fieldset><legend>How do you get around? <span class="opt-tag">Pick any</span></legend><div class="opts">${[["walk","Walk"],["shuttle","JHU shuttles"],["bus","City bus"],["bike","Bike or scooter"],["car","Car"]].map(([v,l]) => chip("travel",v,l,"checkbox",has("travel",v))).join("")}</div></fieldset>`;
   if (step === 3) body = `
-    <p class="note">Add each class once. You will get an "up next" card, directions and a calendar file. You can skip this and add classes later.</p>
-    <ul class="wiz-classes">${realClasses().map(c => `<li><b>${esc(c.name)}</b> · ${c.days.map(d=>DAY[d].slice(0,3)).join(", ")} · ${fmt(c.start)} · ${esc(c.bldg)} <button class="mini" type="button" data-del="${c.id}">Remove</button></li>`).join("") || `<li class="note">No classes yet.</li>`}</ul>
-    ${classForm("wc", true)}`;
+    <p class="note">Add each class once, in person or online. You can skip this and add or edit classes anytime.</p>
+    <ul class="wiz-classes">${realClasses().map(c => `<li><span class="grow"><b>${esc(c.name)}</b> · ${c.days.map(d=>DAY[d].slice(0,3)).join(", ")} · ${fmt(c.start)} · ${esc(where(c))}</span><button class="mini danger" type="button" data-del="${c.id}">Remove</button></li>`).join("") || `<li class="note">No classes yet.</li>`}</ul>
+    ${classForm("wc", null, true)}`;
   if (step === 4) body = `
-    <fieldset><legend>What are you into? <span class="opt-tag">Pick any</span></legend><div class="opts">
-      ${[["fitness","Fitness & sports"],["clubs","Clubs & events"],["career","Jobs & internships"],["research","Research & study"],["arts","Arts & culture"],["explore","Exploring Baltimore"],["food","Good cheap food"],["wellbeing","Wellbeing"]].map(([v,l]) => chip("interests",v,l,"checkbox",has("interests",v))).join("")}</div></fieldset>
-    <fieldset><legend>Food needs <span class="opt-tag">Optional</span></legend><div class="opts">
-      ${[["vegetarian","Vegetarian"],["vegan","Vegan"],["halal","Halal"],["kosher","Kosher"]].map(([v,l]) => chip("diet",v,l,"checkbox",has("diet",v))).join("")}</div></fieldset>`;
-  return `
-    <div class="wiz">
-      <div class="wiz-top">
-        <p class="eyebrow">Make it mine · step ${step+1} of ${STEPS.length}</p>
-        <button class="iconx" type="button" data-close aria-label="Close setup">${svg("close")}</button>
-      </div>
+    <fieldset><legend>What are you into? <span class="opt-tag">Pick any</span></legend><div class="opts">${[["fitness","Fitness & sports"],["clubs","Clubs & events"],["career","Jobs & internships"],["research","Research & study"],["arts","Arts & culture"],["explore","Exploring Baltimore"],["food","Good cheap food"],["wellbeing","Wellbeing"]].map(([v,l]) => chip("interests",v,l,"checkbox",has("interests",v))).join("")}</div></fieldset>
+    <fieldset><legend>Food needs <span class="opt-tag">Optional</span></legend><div class="opts">${[["vegetarian","Vegetarian"],["vegan","Vegan"],["halal","Halal"],["kosher","Kosher"]].map(([v,l]) => chip("diet",v,l,"checkbox",has("diet",v))).join("")}</div></fieldset>`;
+  return `<div class="wiz">
+      <div class="wiz-top"><span class="eyebrow">Make it mine · Step ${step+1} of ${STEPS.length}</span><button class="iconx" type="button" data-close aria-label="Close setup">${svg("close")}</button></div>
       <div class="dots" aria-hidden="true">${STEPS.map((s,i) => `<span class="${i<=step?"on":""}"></span>`).join("")}</div>
       <h2 id="sheetTitle">${STEPS[step]}</h2>
       <div id="wizForm" class="wiz-body">${body}</div>
       <div class="sheet-actions wiz-nav">
-        ${step > 0 ? `<button class="btn ghost" type="button" data-wiz="back">Back</button>` : `<span></span>`}
-        <button class="btn primary" type="button" data-wiz="next">${step === STEPS.length - 1 ? `${svg("check",'width="18" height="18"')}Build my plan` : "Next"}</button>
-      </div>
-    </div>`;
+        ${step > 0 ? `<button class="pill ghost" type="button" data-wiz="back">Back</button>` : `<span></span>`}
+        <button class="pill primary" type="button" data-wiz="next">${step === STEPS.length - 1 ? `${svg("check")}Build my plan` : "Continue"}</button>
+      </div></div>`;
 }
 function readWizStep(){
   const f = $("#wizForm"); if (!f) return;
@@ -494,7 +541,7 @@ function openWizard(){
 function wizGo(dir){
   readWizStep();
   if (dir === "next" && step === STEPS.length - 1){
-    profile = Object.assign({}, draft, {done:true}); store.set("bjb-profile", profile);
+    profile = Object.assign({}, draft); store.set("bjb-profile", profile);
     closeSheet(); tab = "home"; history.replaceState(null, "", location.pathname); render();
     toast(profile.name ? `Your plan is ready, ${profile.name}` : "Your plan is ready");
     setTimeout(() => $("#main").scrollIntoView({behavior: reduced() ? "auto" : "smooth"}), 250);
@@ -511,6 +558,7 @@ function exportICS(){
   const until = (store.get("bjb-until","2026-12-11")).replace(/-/g,"");
   const BY = ["SU","MO","TU","WE","TH","FR","SA"], pad = n => String(n).padStart(2,"0");
   const stamp = new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+/,"");
+  const clean = s => String(s).replace(/[,;\\]/g," ");
   const first = days => { const d = new Date(); for (let i=0;i<7;i++){ const x = new Date(d); x.setDate(d.getDate()+i); if (days.includes(x.getDay())) return x; } return d; };
   const L = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Blue Jay Buddy//EN","CALSCALE:GREGORIAN",
     "BEGIN:VTIMEZONE","TZID:America/New_York","BEGIN:DAYLIGHT","TZOFFSETFROM:-0500","TZOFFSETTO:-0400","TZNAME:EDT","DTSTART:19700308T020000","RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU","END:DAYLIGHT",
@@ -519,18 +567,20 @@ function exportICS(){
     const f = first(c.days), ymd = `${f.getFullYear()}${pad(f.getMonth()+1)}${pad(f.getDate())}`;
     L.push("BEGIN:VEVENT",`UID:bjb-${c.id}@bluejaybuddy`,`DTSTAMP:${stamp}`,`DTSTART;TZID=America/New_York:${ymd}T${c.start.replace(":","")}00`,
       `DTEND;TZID=America/New_York:${ymd}T${c.end.replace(":","")}00`,`RRULE:FREQ=WEEKLY;BYDAY=${c.days.map(d=>BY[d]).join(",")};UNTIL=${until}T235959Z`,
-      `SUMMARY:${c.name.replace(/[,;\\]/g," ")}`,`LOCATION:${(c.bldg+(c.room?" "+c.room:"")).replace(/[,;\\]/g," ")}`,"END:VEVENT");
+      `SUMMARY:${clean(c.name)}`,`LOCATION:${clean(c.mode === "online" ? "Online" : c.bldg + (c.room ? " " + c.room : ""))}`);
+    if (c.link) L.push(`URL:${safeUrl(c.link)}`, `DESCRIPTION:Join: ${clean(safeUrl(c.link))}`);
+    L.push("END:VEVENT");
   });
   L.push("END:VCALENDAR");
   const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([L.join("\r\n")], {type:"text/calendar"})); a.download = "my-jhu-classes.ics";
   document.body.appendChild(a); a.click(); a.remove();
-  openSheet(`<div class="call-sheet"><span class="call-ic">${svg("check")}</span><h2>Calendar file downloaded</h2>
-    <ol class="steps left"><li><b>iPhone or Mac:</b> open the file and tap <b>Add All</b>.</li><li><b>Google Calendar:</b> on a computer, go to Settings → Import &amp; export → Import, and choose the file.</li><li><b>Outlook:</b> open the file, or use Add calendar → Upload from file.</li></ol>
-    <div class="sheet-actions"><button class="btn primary" type="button" data-close>Got it</button></div></div>`, "small");
+  openSheet(`<div class="call-sheet"><span class="call-ic ok">${svg("check")}</span><h2 id="sheetTitle">Calendar file downloaded</h2>
+    <ol class="steps"><li><b>iPhone or Mac:</b> open the file and tap <b>Add All</b>.</li><li><b>Google Calendar:</b> on a computer, open Settings → Import &amp; export → Import, and choose the file.</li><li><b>Outlook:</b> open the file, or use Add calendar → Upload from file.</li></ol>
+    <div class="sheet-actions"><button class="pill primary" type="button" data-close>Done</button></div></div>`, "small");
 }
 
 /* ================= events ================= */
-// Calls always ask first: the first tap opens a confirm popup, "Call now" inside it dials.
+// Calls always ask first: the first tap opens a confirm popup; "Call now" inside it dials.
 document.addEventListener("click", e => {
   const a = e.target.closest('a[href^="tel:"]');
   if (a && !a.dataset.confirmed){
@@ -538,22 +588,39 @@ document.addEventListener("click", e => {
     const label = a.dataset.label || a.textContent.trim() || "this number";
     const num = a.dataset.num || a.getAttribute("href").slice(4).replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3");
     callSheet(label, num);
-  } else if (a && a.dataset.confirmed){ setTimeout(closeSheet, 400); }
+  } else if (a && a.dataset.confirmed){ setTimeout(closeSheet, 500); }
 }, true);
+
+document.addEventListener("change", e => {
+  const r = e.target.closest('input[type="radio"][name$="-mode"]'); if (!r) return;
+  const f = r.closest("form");
+  f.querySelector('[data-show="place"]').hidden = r.value === "online";
+  f.querySelector('[data-show="link"]').hidden = r.value === "inperson";
+});
 
 document.addEventListener("click", e => {
   const T = sel => e.target.closest(sel);
   let el;
   if ((el = T("[data-close]"))){ closeSheet(); return; }
-  if ((el = T("[data-wizard]"))){ openWizard(); return; }
+  if ((el = T("[data-wizard]"))){ e.preventDefault(); openWizard(); return; }
   if ((el = T("[data-wiz]"))){ wizGo(el.dataset.wiz); return; }
   if ((el = T("[data-guide]"))){ guideSheet(el.dataset.guide); return; }
-  if ((el = T("[data-tab]"))){ go(el.dataset.tab); return; }
+  if ((el = T("[data-settings]"))){ settingsSheet(); return; }
+  if ((el = T("[data-addclass]"))){ classSheet(null); return; }
+  if ((el = T("[data-edit]"))){ const c = classes.find(x => String(x.id) === el.dataset.edit); if (c) classSheet(c.ex ? null : c); return; }
+  if ((el = T("[data-reset]"))){ confirmReset(el.dataset.reset); return; }
+  if ((el = T("[data-reset-yes]"))){
+    if (el.dataset.resetYes === "all"){ ["bjb-profile","bjb-favs","bjb-done","bjb-classes","bjb-until"].forEach(store.del); profile = null; favs = new Set(); doneSet = new Set(); }
+    else store.set("bjb-classes", []);
+    classes = store.get("bjb-classes", null) ?? [];
+    if (el.dataset.resetYes === "all") classes = [];
+    closeSheet(); render(); toast("Done. Fresh start."); return;
+  }
+  if ((el = T("[data-tab]"))){ e.preventDefault(); if (sheet.open) closeSheet(); go(el.dataset.tab); return; }
   if ((el = T("[data-go]"))){
     const w = el.dataset.go;
     if (sheet.open) closeSheet();
     if (w === "week"){ if (tab !== "home" || $("#q").value) go("home", false); setTimeout(() => $("#week")?.scrollIntoView({behavior: reduced() ? "auto" : "smooth"}), 60); }
-    else if (w === "plan"){ openWizard(); }
     else go(w);
     return;
   }
@@ -576,33 +643,42 @@ document.addEventListener("click", e => {
   }
   if ((el = T("[data-del]"))){
     classes = classes.filter(x => String(x.id) !== el.dataset.del && !x.ex);
-    if (!classes.length) classes = [];
     saveClasses(); toast("Class removed");
-    if (sheet.open && sheet.classList.contains("wizard")){ sheetBody.innerHTML = wizStepHTML(); } else { render(true); }
+    if (sheet.open && sheet.classList.contains("wizard")) sheetBody.innerHTML = wizStepHTML();
+    else { if (sheet.open) closeSheet(); render(true); }
     return;
   }
   if (T("#icsBtn")) exportICS();
+  if (T("#searchBtn")){ window.scrollTo({top:0, behavior: reduced() ? "auto" : "smooth"}); setTimeout(() => $("#q").focus(), 300); }
 });
 
 document.addEventListener("submit", e => {
   const f = e.target.closest("[data-classform]"); if (!f) return;
   e.preventDefault();
   const px = f.dataset.classform, g = id => document.getElementById(`${px}-${id}`), msg = f.querySelector(".msg");
+  const mode = f.querySelector(`input[name="${px}-mode"]:checked`)?.value || "inperson";
   const days = [1,2,3,4,5].filter(d => g("d"+d).checked);
   if (!days.length){ msg.textContent = "Pick at least one day."; return; }
   if (mins(g("end").value) <= mins(g("start").value)){ msg.textContent = "The end time must be after the start time."; return; }
+  const link = g("link").value.trim();
+  if (link && !/^(https?:\/\/)?[\w.-]+\.[a-z]{2,}/i.test(link)){ msg.textContent = "That meeting link doesn't look right. Paste the full link."; return; }
   if (g("until")) store.set("bjb-until", g("until").value);
+  const data = {name:g("name").value.trim(), mode, days, start:g("start").value, end:g("end").value,
+    bldg: mode === "online" ? "" : g("bldg").value, room: mode === "online" ? "" : g("room").value.trim(), link: mode === "inperson" ? "" : link};
   classes = classes.filter(c => !c.ex);
-  classes.push({id:Date.now(), name:g("name").value.trim(), days, start:g("start").value, end:g("end").value, bldg:g("bldg").value, room:g("room").value.trim()});
-  saveClasses(); toast(`Added ${g("name").value.trim()}`);
-  if (px === "wc"){ readWizStep(); sheetBody.innerHTML = wizStepHTML(); }
-  else { render(true); $("#week")?.scrollIntoView(); }
+  if (f.dataset.editing){ const c = classes.find(x => String(x.id) === f.dataset.editing); Object.assign(c, data); toast("Changes saved"); }
+  else { classes.push(Object.assign({id:Date.now()}, data)); toast(`Added ${data.name}`); }
+  saveClasses();
+  if (px === "wc"){ sheetBody.innerHTML = wizStepHTML(); }
+  else { closeSheet(); render(true); setTimeout(() => $("#week")?.scrollIntoView({behavior: reduced() ? "auto" : "smooth"}), 220); }
 });
 
-$("#planBtn").addEventListener("click", openWizard);
 let tmr;
-$("#q").addEventListener("input", () => { clearTimeout(tmr); tmr = setTimeout(render, 110); });
-$("#q").addEventListener("keydown", e => { if (e.key === "Escape"){ $("#q").value = ""; render(); $("#q").blur(); } });
+$("#q").addEventListener("input", () => { clearTimeout(tmr); tmr = setTimeout(() => { render(); }, 120); });
+$("#q").addEventListener("keydown", e => {
+  if (e.key === "Escape"){ $("#q").value = ""; render(); $("#q").blur(); }
+  if (e.key === "Enter"){ $(".tabs").scrollIntoView({behavior: reduced() ? "auto" : "smooth"}); $("#q").blur(); }
+});
 document.addEventListener("keydown", e => {
   if (e.key === "/" && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) && !sheet.open){ e.preventDefault(); window.scrollTo({top:0, behavior:"smooth"}); $("#q").focus(); }
 });
@@ -615,12 +691,12 @@ if (!profile && !store.get("bjb-welcomed", false)){
   setTimeout(() => {
     if (sheet.open) return;
     openSheet(`<div class="call-sheet welcome">
-      <img src="assets/icon.svg" alt="" width="72" height="72">
-      <h2>Welcome to Blue Jay Buddy</h2>
-      <p>Shuttles, food, buildings, safety numbers and step-by-step guides for Hopkins Homewood, all in one place. No login.</p>
-      <div class="sheet-actions"><button class="btn primary" type="button" data-wizard>${svg("sparkle",'width="18" height="18"')}Make it mine (1 min)</button>
-      <button class="btn ghost" type="button" data-close>Just look around</button></div></div>`, "small");
-  }, 900);
+      <div class="welcome-hero"><img class="bg" src="${PH.keyser.src(900)}" alt="" ${onImg}><img class="logo" src="assets/icon.svg" alt=""></div>
+      <h2 id="sheetTitle">Welcome to Blue Jay Buddy</h2>
+      <p>Classes, shuttles, food, buildings, safety numbers and step-by-step guides for Hopkins Homewood. No login, nothing to install.</p>
+      <div class="sheet-actions"><button class="pill primary big" type="button" data-wizard>${svg("sparkle")}Make it mine</button>
+      <button class="pill ghost" type="button" data-close>Just look around</button></div></div>`, "small");
+  }, 1100);
 }
 setInterval(() => { if (tab === "home" && !$("#q").value && !sheet.open && !document.activeElement.closest?.("form")) render(true); }, 60000);
 if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});

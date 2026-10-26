@@ -4,23 +4,46 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Blue Jay Buddy</title>
-<meta name="description" content="A no-login student hub for Johns Hopkins Homewood: shuttles, food, buildings, services, safety and your class schedule in one place.">
-<meta name="theme-color" content="#002D72">
+<meta name="description" content="Your Johns Hopkins Homewood life in one place: classes, shuttles, food, buildings, safety and step-by-step guides. No login.">
+<meta name="theme-color" content="#0B1B33">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta property="og:title" content="Blue Jay Buddy">
-<meta property="og:description" content="Shuttles, food, buildings, services and your schedule for JHU Homewood, in one place.">
+<meta property="og:description" content="Classes, shuttles, food, buildings, safety and guides for JHU Homewood. No login.">
 <meta property="og:image" content="assets/og.png">
-<link rel="preload" href="assets/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preconnect" href="https://commons.wikimedia.org">
+<link rel="preconnect" href="https://upload.wikimedia.org">
+<link rel="preconnect" href="https://tile.loc.gov">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
-<header class="hero" id="top">
-  <!-- Original illustration of a red-brick Homewood-style quad. The sky follows the time of day. -->
-  <svg class="scene" viewBox="0 0 1200 380" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+<header class="gnav" id="gnav">
+  <div class="gnav-inner">
+    <a class="brand" href="#" data-tab="home" aria-label="Blue Jay Buddy home"><img src="assets/icon.svg" alt="" width="28" height="28"><span>Blue Jay Buddy</span></a>
+    <nav class="gnav-links" aria-label="Main">
+      <button type="button" data-tab="guides">Guides</button>
+      <button type="button" data-tab="academics">Classes</button>
+      <button type="button" data-tab="move">Get around</button>
+      <button type="button" data-tab="food">Food</button>
+      <button type="button" data-tab="map">Buildings</button>
+      <button type="button" data-tab="safety">Safety</button>
+    </nav>
+    <div class="gnav-right">
+      <button class="gicon" id="searchBtn" type="button" aria-label="Search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+      <button class="gicon" id="themeBtn" type="button" aria-label="Switch light or dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+      <button class="gpill" id="navPlanBtn" type="button" data-wizard>Make it mine</button>
+    </div>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <div class="hero-media" aria-hidden="true">
+    <svg class="scene" viewBox="0 0 1200 380" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
     <defs>
       <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0" class="sky-top"/><stop offset="1" class="sky-bottom"/>
@@ -90,41 +113,54 @@
       </g>
     </g>
   </svg>
-
-  <div class="hero-inner wrap">
-    <div class="hero-top">
-      <a class="brand" href="#top" aria-label="Blue Jay Buddy home">
-        <img src="assets/icon.svg" alt="" width="34" height="34">
-        <span>Blue Jay Buddy</span>
-      </a>
-      <button class="iconbtn" id="themeBtn" type="button" aria-label="Switch theme" title="Switch theme">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
-      </button>
+    <img class="hero-photo" id="heroPhoto" alt="" decoding="async" fetchpriority="high">
+    <div class="hero-shade"></div>
+    <svg class="jay-fly" viewBox="0 0 1200 380" preserveAspectRatio="xMidYMid slice"><!-- The blue jay -->
+    <g class="jay-path">
+      <g class="jay">
+        <path class="jay-tail" d="M-30 4 L-52 -2 L-50 10Z"/>
+        <ellipse class="jay-body" cx="-8" cy="4" rx="26" ry="12"/>
+        <ellipse class="jay-belly" cx="-4" cy="10" rx="16" ry="6"/>
+        <circle class="jay-body" cx="16" cy="-4" r="10"/>
+        <path class="jay-body" d="M10 -12 L4 -26 L20 -12Z"/>
+        <path class="jay-beak" d="M25 -4 L35 -2 L25 1Z"/>
+        <circle class="jay-eye" cx="19" cy="-6" r="1.8"/>
+        <path class="jay-ring" d="M8 4 Q16 6 22 2"/>
+        <path class="jay-wing" d="M-14 0 Q-4 -34 14 -6Z"/>
+      </g>
+    </g></svg>
+  </div>
+  <div class="hero-inner">
+    <p class="hero-eyebrow" id="greet">Hello, Blue Jay</p>
+    <h1 class="hero-title">Hopkins,<br>made simple.</h1>
+    <p class="hero-sub">Classes, shuttles, food, buildings and safety, with step-by-step guides for everything. Built by a student, for students. No login.</p>
+    <div class="hero-buttons">
+      <button class="pill primary big" id="planBtn" type="button" data-wizard></button>
+      <button class="pill link big" type="button" data-tab="guides">Explore guides <span aria-hidden="true">›</span></button>
     </div>
-    <p class="greet" id="greet">Hello, Blue Jay</p>
-    <h1 class="headline">Your whole campus,<br>one tap away.</h1>
     <div class="search" role="search">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="q" type="search" placeholder="What do you need? Try: lost ID, shuttle, therapy, pizza" aria-label="Search Blue Jay Buddy" autocomplete="off" enterkeyhint="search">
+      <input id="q" type="search" placeholder="Search anything: lost ID, shuttle, printing, therapy" aria-label="Search Blue Jay Buddy" autocomplete="off" enterkeyhint="search">
       <kbd aria-hidden="true">/</kbd>
-    </div>
-    <div class="hero-cta">
-      <button class="plan-btn" id="planBtn" type="button"></button>
-      <button class="plan-link" type="button" data-guide="use-app">How does this work?</button>
     </div>
     <div class="quick" id="quick" aria-label="Quick actions"></div>
   </div>
-</header>
+  <p class="hero-credit" id="heroCredit"></p>
+</section>
 
 <nav class="tabs" aria-label="Sections">
-  <div class="wrap tabs-inner" id="tabs" role="tablist"></div>
+  <div class="tabs-inner" id="tabs" role="tablist"></div>
 </nav>
 
 <main id="main" class="wrap" tabindex="-1"></main>
 
-<footer class="foot wrap">
-  <p><strong>Blue Jay Buddy</strong> is an independent student project and is not an official Johns Hopkins University site. Hours and schedules change, so every link goes to the official page. Your classes and favorites stay in your own browser.</p>
-  <p>Found a broken link? <a href="https://github.com/sahiljangra12/blue-jay-buddy/issues">Open an issue on GitHub</a>.</p>
+<footer class="foot">
+  <div class="wrap foot-inner">
+    <div class="foot-brand"><img src="assets/icon.svg" alt="" width="36" height="36"><div><strong>Blue Jay Buddy</strong><p>An independent student project. Not an official Johns Hopkins University website.</p></div></div>
+    <p>Hours and schedules change, so every link goes to the official page. Your plan, classes and favorites stay in your own browser.</p>
+    <details class="credits"><summary>Photo credits</summary><ul id="credits"></ul></details>
+    <p><a href="https://github.com/sahiljangra12/blue-jay-buddy">View on GitHub</a> · <a href="https://github.com/sahiljangra12/blue-jay-buddy/issues">Report a broken link</a> · <button class="linkbtn" type="button" data-settings>Settings and reset</button></p>
+  </div>
 </footer>
 
 <nav class="bottombar" aria-label="Shortcuts">

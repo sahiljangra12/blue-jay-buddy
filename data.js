@@ -84,7 +84,7 @@ window.BJB = {
     ["Ames Hall","Arts & Sciences"],["Mergenthaler Hall","Science"],["Milton S. Eisenhower Library","Library"],["Brody Learning Commons","Library"],
     ["Levering Hall","Student life"],["Mattin Center","Student life"],["Bloomberg Student Center","Student life"],["Ralph S. O'Connor Recreation Center","Recreation"],
     ["Interfaith Center","Shuttle stop"],["Scott-Bates Commons","Shuttle stop"],["Garland Hall","Offices"],["Mason Hall","Visitors"],
-    ["Shriver Hall","Events"],["Charles Commons","Housing"],
+    ["Shriver Hall","Events"],["Homewood Museum","Museum"],["Charles Commons","Housing"],
   ],
 
   // Posted O'Connor hours, Sunday first. They change by season; the app links to the official page.
@@ -93,3 +93,30 @@ window.BJB = {
   mostUsed: ["SIS","Canvas","Hopkins Groups","Today's dining hours","The JHMI shuttle (\"the Jimmy\")","Sheridan Libraries"],
 };
 window.BJB.maps = MAPS;
+
+// ---------- Campus photos ----------
+// Wikimedia Commons photos load through Special:FilePath (resized by Commons).
+// Library of Congress photos are from the Carol M. Highsmith Archive, which is in the public domain.
+const COMMONS = (name, w) => "https://commons.wikimedia.org/wiki/Special:FilePath/" + encodeURIComponent(name) + "?width=" + w;
+const COMMONS_PAGE = name => "https://commons.wikimedia.org/wiki/File:" + encodeURIComponent(name.replace(/ /g, "_"));
+const LOC = (id, pct) => `https://tile.loc.gov/image-services/iiif/service:pnp:highsm:${Math.floor(id / 100) * 100}:${id}/full/pct:${pct}/0/default.jpg`;
+const photo = {
+  commons: (key, title, caption, file) => ({ key, title, caption, src: w => COMMONS(file, w), credit: "Wikimedia Commons", page: COMMONS_PAGE(file), file }),
+  loc: (key, title, caption, id) => ({ key, title, caption, src: w => LOC(id, w > 1000 ? 25 : 12.5), credit: "Carol M. Highsmith Archive, Library of Congress (public domain)", page: `https://www.loc.gov/resource/highsm.${id}/`, file: `highsm.${id}` }),
+};
+window.BJB.photos = [
+  photo.commons("hero",   "Gilman Hall", "The clock tower at the head of the Upper Quad.", "Gilman Hall at the head of the Upper Quad, Johns Hopkins University.jpg"),
+  photo.commons("gilman", "Gilman Hall", "Home of the humanities since 1915.", "Gilman Hall, Johns Hopkins University, Baltimore, MD.jpg"),
+  photo.loc("brody",      "Brody Learning Commons", "Open late, glass walls, group rooms.", 18372),
+  photo.loc("mse",        "Eisenhower Library", "The main Homewood library, mostly underground.", 18409),
+  photo.commons("keyser", "Keyser Quad", "The lawn where everyone ends up on a sunny day.", "Panorama of the Keyser Quad from the steps of Gilman Hall.jpg"),
+  photo.commons("decker", "Decker Quad", "Engineering's side of campus.", "Panorama of buildings on the Decker Quad - 53494926873.jpg"),
+  photo.commons("shriver","Shriver Hall", "Concerts, talks and big lectures.", "Shriver Hall at the foot of the Lower (Wyman) Quad (Johns Hopkins University).jpg"),
+  photo.commons("merg",   "Mergenthaler Hall", "Biology and neuroscience labs.", "Mergenthaler Hall, Johns Hopkins University, Baltimore, MD.jpg"),
+  photo.commons("museum", "Homewood Museum", "The 1801 house the campus is named after.", "Homewood Museum, Johns Hopkins University, Baltimore, MD.jpg"),
+  photo.commons("gate",   "East Gate", "The Charles Street entrance.", "East Gate of Johns Hopkins University Homewood Campus (2016, Dec).jpg"),
+];
+window.BJB.buildingPhoto = {
+  "Gilman Hall": "gilman", "Milton S. Eisenhower Library": "mse", "Brody Learning Commons": "brody",
+  "Shriver Hall": "shriver", "Mergenthaler Hall": "merg", "Homewood Museum": "museum",
+};
