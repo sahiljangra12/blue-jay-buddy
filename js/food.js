@@ -116,16 +116,18 @@ App.placeCard = p => `<article class="item place">
   </div></article>`;
 
 function nearby(){
+  if (near.status === "idle") setTimeout(() => locate(false), 0); // campus list loads by itself; "Use my location" re-centres on you
   const list = near.status === "done" ? near.list : F.places.map(p => Object.assign({}, p));
   const ok = list.filter(p => (p.diet ? dietOk(p) : true));
   const budgetMeal = App.budgetLeft() / ({ most: 2, some: 4, none: 8 }[B.cook] || 4);
   return `
   <div class="toolbar">
     <span class="note">${near.status === "done" ? `${near.list.length} places within a 12-minute walk${near.where === "campus" ? " of campus" : " of you"}` : `Popular spots near Homewood`} · showing ${esc({ veg:"vegetarian-friendly", egg:"vegetarian-friendly", vegan:"vegan-friendly", nonveg:"all" }[B.diet])}</span>
-    <button class="btn sm primary" type="button" data-locate>${svg("pin")}${near.status === "loading" ? "Finding…" : "Use my location"}</button>
+    <button class="btn sm primary" type="button" data-locate>${svg("pin")}${near.status === "loading" ? "Finding places…" : "Use my location"}</button>
     <button class="btn sm soft" type="button" data-budget-settings>Diet</button>
   </div>
   ${near.status === "error" ? `<p class="note bad">${esc(near.err)}</p>` : ""}
+  ${near.status === "loading" ? `<p class="note">Looking up every restaurant and café within a 12-minute walk. This can take up to 30 seconds the first time.</p>` : ""}
   <div class="seg-filter" role="group" aria-label="Filter">${[["all","All"],["cheap","Under " + money(Math.max(8, Math.round(budgetMeal)))],["campus","On campus"],["breakfast","Breakfast & coffee"]].map(([v, l]) => `<button type="button" class="${(App.nearFilter || "all") === v ? "on" : ""}" data-near-filter="${v}">${esc(l)}</button>`).join("")}</div>
   <div class="list">${ok.filter(p => {
     const f = App.nearFilter || "all";
@@ -137,18 +139,32 @@ function nearby(){
   <p class="note">Places come from OpenStreetMap; prices are our typical estimates (checked ${App.monthLabel(F.checked)}). Tap “Menu & hours” for today's prices.</p>`;
 }
 
-async function locate(){
+async function locate(gps = true){
   near.status = "loading"; App.render();
   let pos = HOMEWOOD, where = "campus";
-  try {
-    const p = await new Promise((ok, bad) => navigator.geolocation.getCurrentPosition(ok, bad, { timeout: 8000, maximumAge: 300000 }));
+  if (gps) try {
+    // Don't wait forever if the location prompt is ignored.
+    const p = await Promise.race([
+      new Promise((ok, bad) => navigator.geolocation.getCurrentPosition(ok, bad, { timeout: 8000, maximumAge: 300000 })),
+      new Promise((_, bad) => setTimeout(() => bad(new Error("timeout")), 10000)),
+    ]);
     pos = { lat: p.coords.latitude, lon: p.coords.longitude }; where = "you";
     if (dist(pos, HOMEWOOD) > 40000){ pos = HOMEWOOD; where = "campus"; } // far from Baltimore: show campus
   } catch {}
   const q = `[out:json][timeout:20];(nwr(around:1000,${pos.lat},${pos.lon})[amenity~"^(restaurant|fast_food|cafe|food_court|ice_cream)$"][name];);out center tags 120;`;
   try {
-    const r = await fetch("https://overpass-api.de/api/interpreter", { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "content-type": "application/x-www-form-urlencoded" } });
-    const j = await r.json();
+    // Cached for 6 hours per ~300 m area. Two public OpenStreetMap servers race; the first answer wins.
+    const ck = `bjb-near-${pos.lat.toFixed(3)},${pos.lon.toFixed(3)}`, hit = store.get(ck, null);
+    let j = hit && Date.now() - hit.at < 6 * 36e5 ? hit.data : null;
+    if (!j){
+      const ctl = new AbortController(), stop = setTimeout(() => ctl.abort(), 45000);
+      const ask = url => fetch(url, { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "content-type": "application/x-www-form-urlencoded" }, signal: ctl.signal }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+      j = await Promise.any(["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"].map(ask));
+      ctl.abort(); clearTimeout(stop);
+      j = { elements: j.elements.map(e => ({ lat: e.lat, lon: e.lon, center: e.center, tags: e.tags })) };
+      Object.keys(localStorage).filter(k => k.startsWith("bjb-near-")).forEach(k => store.del(k));
+      store.set(ck, { at: Date.now(), data: j });
+    }
     near.list = j.elements.map(el => {
       const t = el.tags, lat = el.lat ?? el.center?.lat, lon = el.lon ?? el.center?.lon;
       const known = F.places.find(p => p.n.toLowerCase().split(/[ (&]/)[0] === t.name.toLowerCase().split(/[ (&]/)[0]);
@@ -210,7 +226,7 @@ document.addEventListener("submit", e => {
 document.addEventListener("click", e => {
   const t = e.target;
   if (t.closest("[data-budget-settings]")) { e.preventDefault(); App.budgetSheet(); }
-  if (t.closest("[data-locate]")) locate();
+  if (t.closest("[data-locate]")) locate(true);
   const nf = t.closest("[data-near-filter]"); if (nf){ App.nearFilter = nf.dataset.nearFilter; App.render(); }
   const ds = t.closest("[data-del-spend]"); if (ds){ B.spends = B.spends.filter(s => String(s.at) !== ds.dataset.delSpend); saveB(); App.render(); }
 });

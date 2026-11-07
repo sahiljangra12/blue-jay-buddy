@@ -1,7 +1,7 @@
 // Offline support and push alerts.
 // When you change a file, bump VERSION here and the ?v= numbers in index.html so every browser loads the new copy together.
-const VERSION = "bjb-v6";
-const V = "?v=6";
+const VERSION = "bjb-v7";
+const V = "?v=7";
 const SHELL = ["./", "index.html", "styles.css" + V, "data.js" + V, "guides.js" + V, "illustrations.js" + V, "programs.js" + V, "food-data.js" + V,
   ...["core","import","canvas","today","classes","food","campus","groups","ask","setup","main"].map(f => `js/${f}.js${V}`),
   "manifest.webmanifest", "assets/icon.svg", "assets/icon-192.png"];
