@@ -10,6 +10,9 @@ window.BJB = {
   reviewed: "2026-10",
   // Where "Report a problem" and "Send feedback" go.
   contact: "sfnu1@jh.edu",
+  // The Netlify server (Canvas, alerts, assistant, groups). The GitHub Pages copy forwards here.
+  api: "https://blue-jay-buddy.netlify.app",
+  apiHost: "blue-jay-buddy.netlify.app",
 
   sections: [
     { id: "academics", label: "Classes",   intro: "Everything for your courses. Add your timetable on Home to get a live \"up next\" card." },

@@ -1,0 +1,13 @@
+{
+  "name": "blue-jay-buddy",
+  "private": true,
+  "type": "module",
+  "description": "Blue Jay Buddy: JHU Homewood student hub. Static site + Netlify functions.",
+  "dependencies": {
+    "@netlify/blobs": "^10.0.0",
+    "@netlify/functions": "^5.2.0",
+    "@netlify/identity": "^1.0.0",
+    "openai": "^6.0.0",
+    "web-push": "^3.6.7"
+  }
+}
