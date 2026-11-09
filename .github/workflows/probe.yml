@@ -13,20 +13,24 @@ jobs:
           out=probe.txt; : > $out
           p(){ echo "=== $1" >> $out; curl -sS -m 20 -A "Mozilla/5.0" -D - -o body.tmp "$1" 2>&1 | grep -iE "^HTTP|access-control|content-type" >> $out; head -c 1500 body.tmp >> $out 2>/dev/null; echo >> $out; true; }
           B="https://jhu.transloc.com/Services/JSONPRelay.svc"
-          curl -sS -m 20 "$B/GetRoutesForMapWithScheduleWithEncodedLine?apiKey=$K&isDispatch=false" > routes.json
-          echo "=== ROUTES" >> $out
-          jq -r '.[] | "\(.RouteID) | \(.Description) | color \(.MapLineColor) | visible \(.IsVisibleOnMap) | stops \(.Stops|length) | keys \(keys|join(","))"' routes.json >> $out
-          echo "=== FIRST ROUTE STOPS" >> $out
-          jq -r '.[0].Stops[:3][] | tostring' routes.json | cut -c1-500 >> $out
-          echo "=== ALL STOPS (route,routestopid,addressid,desc)" >> $out
-          jq -r '.[] | .RouteID as $r | .Stops[] | "\($r) | \(.RouteStopID) | \(.AddressID) | \(.Description) | \(.Latitude),\(.Longitude)"' routes.json | head -150 >> $out
-          ids=$(jq -r '[.[].RouteID]|join(",")' routes.json)
-          p "$B/GetStopArrivalTimes?apiKey=$K&routeIds=$ids&version=2"
-          p "$B/GetStopArrivalTimes?apiKey=$K&routeIds=$ids"
-          echo "=== VEHICLES" >> $out
-          curl -sS -m 20 "$B/GetMapVehiclePoints?apiKey=$K&isPublicMap=true" | jq -c '.[] | {RouteID,Name,IsOnRoute,Seconds}' >> $out
-          echo "=== CG redirect" >> $out
-          curl -sS -m 20 -A "Mozilla/5.0" -I "https://jhu.campusgroups.com/ical/jhu/ical_jhu.ics" | grep -i "^location\|^HTTP" >> $out
-          curl -sS -m 20 -A "Mozilla/5.0" "https://jhu.campusgroups.com/ics_helper" | grep -io 'https\?://[^"<> ]*ical[^"<> ]*\|/ical/[^"<> ]*' | sort -u | head -20 >> $out
-          curl -sS -m 25 -A "Mozilla/5.0" -L "https://jhu.campusgroups.com/ical/jhu/ical_jhu.ics" | head -c 800 >> $out
+          echo "=== ARR26" >> $out
+          curl -sS -m 20 "$B/GetStopArrivalTimes?apiKey=$K&routeIds=26&version=2" | jq -c '.[] | {RouteStopId,StopDescription,Times:(.Times[:2])}' | head -14 >> $out
+          echo "=== ARR33,4,24" >> $out
+          curl -sS -m 20 "$B/GetStopArrivalTimes?apiKey=$K&routeIds=33,4,24,43,29&version=2" | jq -c '.[] | {RouteId,StopDescription,n:(.Times|length),t:(.Times[0].Text // .Times[0].Seconds)}' | head -40 >> $out
+          echo "=== ROUTE26 info" >> $out
+          curl -sS -m 20 "$B/GetRoutesForMapWithScheduleWithEncodedLine?apiKey=$K&isDispatch=false" | jq -c '.[] | select(.RouteID==26) | {IsRunning,InfoText,Stops:[.Stops[]|{RouteStopID,SecondsToNextStop,ShowEstimatesOnMap,ShowDefaultedOnMap}][:3]}' >> $out
+          echo "=== CG headers" >> $out
+          curl -sS -m 25 -A "Mozilla/5.0" -H "Origin: https://sahiljangra12.github.io" -D - -o cg.ics "https://static-prod-us-east-1.campusgroups.com/ical/jhu/ical_jhu.ics" | grep -iE "^HTTP|access-control|content-type|content-length|cache" >> $out
+          ls -la cg.ics >> $out; grep -c BEGIN:VEVENT cg.ics >> $out
+          echo "=== CG today+" >> $out
+          python3 - >> $out <<'PY'
+          import re,datetime
+          t=open("cg.ics",encoding="utf-8",errors="ignore").read().replace("\r\n","\n").replace("\n ","")
+          ev=t.split("BEGIN:VEVENT")[1:]
+          now=datetime.datetime.utcnow().strftime("%Y%m%d")
+          fut=[e for e in ev if (m:=re.search(r"^DTSTART[^:]*:(\d{8})",e,re.M)) and m.group(1)>=now]
+          print("future events",len(fut))
+          for e in fut[:6]:
+              print("----"); print("\n".join(l[:160] for l in e.split("\n")[:25]))
+          PY
           cat probe.txt
