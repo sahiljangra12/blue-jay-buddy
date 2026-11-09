@@ -1,0 +1,33 @@
+name: Collect campus photos
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "candidates or final"
+        default: candidates
+permissions:
+  contents: write
+jobs:
+  photos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm i --no-save sharp@0.33.5
+      - if: ${{ inputs.mode == 'candidates' }}
+        run: node scripts/fetch-photos.mjs
+      - if: ${{ inputs.mode == 'final' }}
+        run: node scripts/build-photos.mjs
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898341+github-actions[bot]@users.noreply.github.com"
+          if [ "${{ inputs.mode }}" = "candidates" ]; then
+            git checkout -B photo-candidates
+            git add -f photo-candidates
+            git commit -m "Photo candidates for review" && git push -f origin photo-candidates
+          else
+            git add assets/photos assets/photos.json
+            git diff --cached --quiet || (git commit -m "Add campus photos" && git push)
+          fi
