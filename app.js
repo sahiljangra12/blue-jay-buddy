@@ -412,13 +412,21 @@ function viewHome(){
   ${contextCard()}
   ${plan}
   ${favItems.length ? `<section class="io" aria-label="Favorites"><h2 class="subhead">Your favorites</h2><div class="chips">${favItems.map(it => `<a class="chiplink" href="${esc(it.u)}" target="_blank" rel="noopener"><span class="badge sm b-${it.cat}">${svg(it.cat)}</span>${esc(it.t)}</a>`).join("")}</div></section>` : ""}
-  <section class="io" aria-label="Quick links and sections">
-    <h2 class="subhead">Quick links</h2>
-    <div class="chips">${quick.map(it => `<a class="chiplink" href="${esc(it.u)}" target="_blank" rel="noopener"><span class="badge sm b-${it.cat}">${svg(it.cat)}</span>${esc(it.t.replace(/ \(.*\)$/, ""))}</a>`).join("")}</div>
-    <h2 class="subhead" style="margin-top:26px">Everything else</h2>
-    <div class="chips">${[["guides","Guides","guide"], ...D.sections.map(x => [x.id, x.label, x.id === "map" ? "walk" : x.id])].map(([id, l, ic]) => `<button class="chiplink" type="button" data-tab="${id}"><span class="badge sm b-${id === "guides" ? "guide" : id}">${svg(ic)}</span>${esc(l)}</button>`).join("")}</div>
+  <section class="io" aria-labelledby="h-apps">
+    <h2 class="subhead" id="h-apps">Everything, one tap away</h2>
+    <nav class="launcher" aria-label="Apps and sections">${launcher()}</nav>
   </section>
   <p class="feedback-line">Built by a student. Something missing or wrong? <a href="mailto:${D.contact}?subject=${encodeURIComponent("Blue Jay Buddy feedback")}">Tell me</a> · <a href="privacy.html">Privacy</a></p>`;
+}
+// The launcher: Hopkins apps students open daily, then every section of Blue Jay Buddy.
+function launcher(){
+  const ext = [["Canvas","https://canvas.jhu.edu","academics","#1D64B8"],["SIS","https://sis.jhu.edu","services","#4B4FC4"],
+    ["Clubs","https://jhu.campusgroups.com","fun","#B2397E"],["Dining","https://studentaffairs.jhu.edu/dining/where-to-eat/","food","#C2384F"],
+    ["Library","https://www.library.jhu.edu","book","#0B7A75"]];
+  const int = [["guides","Guides","guide","#0E8A62"],["move","Get around","move","#C27A0A"],["map","Buildings","walk","#9A3D22"],
+    ["fun","Rec center","star","#7A4BC4"],["health","Health","health","#13996B"],["services","Services","services","#3D5A80"],["safety","Safety","safety","#C62828"]];
+  return ext.map(([l, u, ic, h]) => `<a class="app" href="${u}" target="_blank" rel="noopener"><span class="app-ic" style="--h:${h}">${svg(ic)}</span><span>${l}</span></a>`).join("")
+    + int.map(([id, l, ic, h]) => `<button class="app" type="button" data-tab="${id}"><span class="app-ic" style="--h:${h}">${svg(ic)}</span><span>${l}</span></button>`).join("");
 }
 function checkRow(id){
   return `<li class="${doneSet.has(id)?"done":""}">

@@ -657,3 +657,140 @@ body.doc{padding-bottom:40px}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .open-pill.open span:last-child{color:#6FD39A}}
 p a,li a,.note a,.feedback-line a,.foot a{text-decoration:underline;text-underline-offset:2px}
 .due-text b a{text-decoration:none}
+
+/* =====================================================================
+   v8 visual refresh: "Homewood morning"
+   Cool morning-sky page, Hopkins navy ink, spirit-blue actions, one display face (Bricolage
+   Grotesque) for headlines and numbers. The one bold element is the app-icon launcher on Today;
+   everything around it is quieter: hairline borders instead of heavy shadows, calm tinted icons,
+   no scroll-in animations.
+   ===================================================================== */
+@font-face{font-family:"Bricolage Grotesque";src:url(assets/fonts/bricolage.woff2) format("woff2");font-weight:200 800;font-stretch:75% 100%;font-display:swap}
+:root{
+  --bg:#EDF2F8; --surface:#FFFFFF; --surface-2:#F3F6FA; --ink:#0E1A2E; --muted:#56637A; --line:#DCE3ED;
+  --accent:#1D64B8; --accent-ink:#FFFFFF; --accent-soft:#E3EDF9; --navy:#0B2A5B; --sky:#68ACE5;
+  --display:"Bricolage Grotesque","SF Pro Display",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --shadow:0 1px 2px rgba(14,26,46,.05),0 8px 24px -14px rgba(14,26,46,.18);
+  --shadow-lift:0 2px 4px rgba(14,26,46,.06),0 18px 36px -16px rgba(14,26,46,.28);
+  --glass:rgba(240,244,250,.78);
+  --r-lg:26px; --r:18px;
+}
+:root[data-theme="dark"]{
+  --bg:#08101E; --surface:#101A2B; --surface-2:#172338; --ink:#E9EFF8; --muted:#9AA8BF; --line:#23324B;
+  --accent:#6FB2EE; --accent-ink:#06162C; --accent-soft:#132D4D; --navy:#0B2A5B;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -16px rgba(0,0,0,.8); --shadow-lift:0 20px 40px -18px rgba(0,0,0,.9);
+  --glass:rgba(10,18,32,.78);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#08101E; --surface:#101A2B; --surface-2:#172338; --ink:#E9EFF8; --muted:#9AA8BF; --line:#23324B;
+  --accent:#6FB2EE; --accent-ink:#06162C; --accent-soft:#132D4D; --navy:#0B2A5B;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -16px rgba(0,0,0,.8); --shadow-lift:0 20px 40px -18px rgba(0,0,0,.9);
+  --glass:rgba(10,18,32,.78);
+}}
+:root[data-theme="dark"] .foot{background:#060C17}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .foot{background:#060C17}}
+
+/* Type: one display face for headlines and numbers */
+h1,h2,.hero-title,.big,.big2,.cl-count,.ctx-title,.subhead,.num,.brand span{font-family:var(--display)}
+.hero-title{font-weight:750;font-stretch:90%;letter-spacing:-.035em;line-height:.98}
+h2{font-weight:700;letter-spacing:-.025em;font-size:clamp(26px,3.4vw,36px)}
+.subhead{font-size:22px;font-weight:650;letter-spacing:-.015em;margin:0 0 14px}
+.big{font-weight:700;letter-spacing:-.025em}
+.cl-count{font-weight:650;letter-spacing:-.02em}
+.brand span{font-weight:700;letter-spacing:-.02em}
+.eyebrow{font-size:13px;font-weight:600;color:var(--accent);letter-spacing:0}
+
+/* Calm motion: keep the hero's entrance, drop scroll-in and stagger effects */
+.js-io .io{opacity:1;transform:none;transition:none}
+.reveal{animation:none}
+
+/* Hero blends into the page */
+.hero{background:#0B2A5B}
+.hero-shade{background:
+  radial-gradient(120% 90% at 0% 30%,rgba(6,18,40,.62) 0%,rgba(6,18,40,.15) 55%,transparent 75%),
+  linear-gradient(180deg,rgba(6,18,40,.28) 0%,transparent 30%,transparent 62%,rgba(6,18,40,.5) 100%)}
+.hero::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:28px;background:var(--bg);border-radius:28px 28px 0 0;z-index:1}
+.hero-inner{padding-bottom:58px}
+@media (min-width:900px){.hero-inner{padding-bottom:70px}}
+.hero-sub{color:rgba(255,255,255,.9);text-shadow:0 1px 10px rgba(6,18,40,.4)}
+.hero-eyebrow{text-shadow:0 1px 8px rgba(6,18,40,.4)}
+.search input{border-radius:18px;box-shadow:0 18px 40px -18px rgba(6,18,40,.7)}
+.qa{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.28)}
+
+/* Top bar and section tabs: lighter */
+.gnav{border-bottom:0;box-shadow:0 1px 0 color-mix(in srgb,var(--line) 70%,transparent)}
+.gpill{background:var(--navy);color:#fff}
+:root[data-theme="dark"] .gpill{background:var(--accent);color:var(--accent-ink)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .gpill{background:var(--accent);color:var(--accent-ink)}}
+.tabs{background:var(--glass);border-bottom:1px solid color-mix(in srgb,var(--line) 80%,transparent)}
+.tab{color:var(--muted);font-weight:500}
+.tab:hover{color:var(--ink);background:none}
+.tab[aria-selected="true"]{background:var(--accent-soft);color:var(--accent)}
+
+/* Surfaces: hairline borders, quiet shadows */
+.tile{border:1px solid var(--line);box-shadow:none}
+.card{border:1px solid var(--line);box-shadow:none;transition:border-color .2s,box-shadow .25s var(--spring),transform .25s var(--spring)}
+.card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lift);border-color:color-mix(in srgb,var(--accent) 30%,var(--line))}
+article.card:hover{transform:none}
+.due-list.big,.empty{box-shadow:none;border:1px solid var(--line)}
+
+/* Calm icon tiles: one tint per section instead of loud gradients */
+.badge{box-shadow:none;border-radius:14px;--h:#1D64B8;background:color-mix(in srgb,var(--h) 13%,var(--surface));color:var(--h)}
+.b-academics{--h:#1D64B8}.b-services{--h:#6A4BC4}.b-health{--h:#0E8A62}.b-move{--h:#B86E00}.b-food{--h:#C2384F}
+.b-fun{--h:#B2397E}.b-safety{--h:#C62828}.b-guide{--h:#0B7A75}.b-map{--h:#9A3D22}
+.b-academics,.b-services,.b-health,.b-move,.b-food,.b-fun,.b-safety,.b-guide,.b-map{background:color-mix(in srgb,var(--h) 13%,var(--surface));color:var(--h)}
+:root[data-theme="dark"] .badge{color:color-mix(in srgb,var(--h) 55%,white);background:color-mix(in srgb,var(--h) 22%,var(--surface))}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .badge{color:color-mix(in srgb,var(--h) 55%,white);background:color-mix(in srgb,var(--h) 22%,var(--surface))}}
+.ctx-ic{border-radius:12px}
+
+/* Up next: Hopkins navy, with a soft sky glow */
+.next{background:radial-gradient(120% 140% at 100% 0%,#2F6FC2 0%,transparent 55%),linear-gradient(160deg,#0B2A5B,#0A2149);border:0}
+.next .deco{opacity:.1}
+.next .count{background:rgba(255,255,255,.14)}
+
+/* Open now strip: quieter */
+.open-pill{box-shadow:none;border:1px solid var(--line)}
+
+/* Launcher: the one bold element. A home screen of the places students open most. */
+.launcher{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:22px 12px;padding:26px 22px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg)}
+@media (max-width:760px){.launcher{grid-template-columns:repeat(4,minmax(0,1fr));gap:18px 6px;padding:20px 12px}}
+.app{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;border:0;background:none;padding:0;font:inherit;color:var(--ink);cursor:pointer;text-decoration:none!important;min-width:0}
+.app-ic{--h:#1D64B8;width:62px;height:62px;border-radius:18px;display:grid;place-items:center;color:#fff;position:relative;overflow:hidden;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--h) 78%,white),var(--h) 55%,color-mix(in srgb,var(--h) 80%,black));
+  box-shadow:0 1px 0 rgba(255,255,255,.35) inset,0 10px 18px -10px color-mix(in srgb,var(--h) 80%,black);transition:transform .25s var(--spring)}
+.app-ic::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.22),transparent 45%)}
+.app-ic svg{width:28px;height:28px;position:relative;z-index:1}
+@media (max-width:760px){.app-ic{width:56px;height:56px;border-radius:16px}.app-ic svg{width:26px;height:26px}}
+.app:hover .app-ic{transform:translateY(-3px) scale(1.04)}
+.app:active .app-ic{transform:scale(.94)}
+.app span{font-size:13px;font-weight:500;line-height:1.2;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.app small{display:block;font-size:11px;color:var(--muted);margin-top:-6px}
+.app:focus-visible{outline:none}
+.app:focus-visible .app-ic{outline:3px solid color-mix(in srgb,var(--accent) 60%,transparent);outline-offset:3px}
+
+/* Favorites: small, quiet links */
+.chiplink{box-shadow:none;border:1px solid var(--line)}
+
+/* Bottom bar becomes a floating dock on phones */
+@media (max-width:899px){
+  body{padding-bottom:calc(98px + env(safe-area-inset-bottom,0px))}
+  .bottombar{left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));border:1px solid color-mix(in srgb,var(--line) 80%,transparent);border-radius:24px;padding:6px;box-shadow:0 18px 40px -16px rgba(6,18,40,.45)}
+  .bottombar button{border-radius:18px;padding:7px 0 6px}
+  .bottombar button.on{background:var(--accent-soft)}
+  .toast{bottom:calc(104px + env(safe-area-inset-bottom,0px))}
+}
+
+/* Footer */
+.foot{background:var(--surface-2)}
+/* v8 fixes: legibility over the illustration */
+.hero-title{font-stretch:100%}
+.qa{background:rgba(6,18,40,.46);border-color:rgba(255,255,255,.22)}
+.qa:hover{background:rgba(6,18,40,.62)}
+.hero .pill.link{text-shadow:0 1px 10px rgba(6,18,40,.7)}
+@media (max-width:640px){.hero-shade{background:linear-gradient(180deg,rgba(6,18,40,.42),rgba(6,18,40,.32) 60%,rgba(6,18,40,.55))}}
+:root[data-theme="dark"] .bottombar button{color:#B4C0D4}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .bottombar button{color:#B4C0D4}}
+:root[data-theme="dark"] .bottombar button.on{color:var(--accent)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .bottombar button.on{color:var(--accent)}}
+:root[data-theme="dark"] .bottombar .sos-tab{color:var(--alert)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .bottombar .sos-tab{color:var(--alert)}}
