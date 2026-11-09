@@ -1,0 +1,10 @@
+{
+  "name": "blue-jay-buddy",
+  "private": true,
+  "type": "module",
+  "description": "Server helpers for Blue Jay Buddy (Netlify functions). The site itself is plain HTML, CSS and JS.",
+  "dependencies": {
+    "@netlify/blobs": "11.1.6",
+    "@netlify/functions": "6.0.3"
+  }
+}

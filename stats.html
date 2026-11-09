@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Usage · Blue Jay Buddy</title>
+<meta name="description" content="How many students use Blue Jay Buddy each day. Anonymous daily totals only.">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css?v=6">
+</head>
+<body class="doc">
+<header class="gnav"><div class="gnav-inner"><a class="brand" href="./"><img src="assets/icon.svg" alt="" width="28" height="28"><span>Blue Jay Buddy</span></a><div class="gnav-right"><a class="gpill" href="./">Back to the app</a></div></div></header>
+<main class="wrap doc-main">
+  <span class="eyebrow">Usage</span>
+  <h1>Who uses Blue Jay Buddy.</h1>
+  <p class="lead">Daily totals for the last 30 days. Each browser counts once a day. Nothing about any person is stored. <a href="privacy.html">How this works</a>.</p>
+  <div class="stat-tiles" id="tiles"><div class="tile"><span class="eyebrow">Loading</span><span class="cl-count">…</span></div></div>
+  <div class="tile chart-tile"><span class="eyebrow">Daily visitors</span><div id="chart" class="chart" role="img" aria-label="Daily visitors chart"></div><p class="note" id="note"></p></div>
+</main>
+<script>
+(async () => {
+  const API = location.hostname.endsWith("netlify.app") ? "" : "https://blue-jay-buddy.netlify.app";
+  const tiles = document.getElementById("tiles"), chart = document.getElementById("chart"), note = document.getElementById("note");
+  try {
+    const r = await fetch(API + "/api/stats"); if (!r.ok) throw new Error(r.status);
+    const { days, total } = await r.json();
+    const last7 = days.slice(-7), week = last7.reduce((s, d) => s + d.visitors, 0), plan = last7.reduce((s, d) => s + d.withPlan, 0);
+    const avg = Math.round(week / 7 * 10) / 10;
+    tiles.innerHTML = [["Last 30 days", total.toLocaleString(), "browser-days"], ["Last 7 days", week.toLocaleString(), `about ${avg} a day`], ["With a personal plan", week ? Math.round(plan / week * 100) + "%" : "–", "last 7 days"]]
+      .map(([e, n, s]) => `<div class="tile"><span class="eyebrow">${e}</span><span class="cl-count">${n}</span><span class="note">${s}</span></div>`).join("");
+    const max = Math.max(1, ...days.map(d => d.visitors));
+    chart.innerHTML = days.map(d => `<div class="bar" title="${d.date}: ${d.visitors}"><span style="height:${Math.max(2, d.visitors / max * 100)}%"></span><i>${d.date.slice(8)}</i></div>`).join("");
+    chart.setAttribute("aria-label", `Daily visitors, last 30 days. Highest day: ${max}.`);
+    note.textContent = `Highest day: ${max}. Days run midnight to midnight UTC.`;
+  } catch {
+    tiles.innerHTML = `<div class="tile"><span class="eyebrow">Not available</span><span class="note">Usage numbers couldn't be loaded right now. Try again later.</span></div>`;
+  }
+})();
+</script>
+</body>
+</html>

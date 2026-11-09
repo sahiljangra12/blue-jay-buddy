@@ -1,0 +1,30 @@
+# Checks every link and phone page in the app on the 1st of each month (and on demand).
+# If anything is broken, it opens (or updates) one GitHub issue titled "Broken links".
+name: Monthly link check
+on:
+  schedule:
+    - cron: "0 13 1 * *"   # 1st of the month, 9 AM Eastern (EDT) / 8 AM (EST)
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check links
+        id: check
+        run: node scripts/check-links.mjs
+        continue-on-error: true
+      - name: Open or update an issue if links are broken
+        if: steps.check.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          num=$(gh issue list --state open --search "Broken links in:title" --json number --jq '.[0].number')
+          if [ -n "$num" ]; then gh issue comment "$num" --body-file link-report.md
+          else gh issue create --title "Broken links" --body-file link-report.md; fi

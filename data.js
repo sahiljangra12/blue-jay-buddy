@@ -98,9 +98,6 @@ window.BJB = {
     ["Shriver Hall","Events"],["Homewood Museum","Museum"],["Charles Commons","Housing"],
   ],
 
-  // Posted O'Connor hours, Sunday first. They change by season; the app links to the official page.
-  recHours: ["12:00 PM – 4:00 PM","6:30 AM – 8:00 PM","6:30 AM – 8:00 PM","6:30 AM – 8:00 PM","6:30 AM – 8:00 PM","6:30 AM – 6:00 PM","10:00 AM – 6:00 PM"],
-
   mostUsed: ["SIS","Canvas","Hopkins Groups","Today's dining hours","The JHMI shuttle (\"the Jimmy\")","Sheridan Libraries"],
 };
 window.BJB.maps = MAPS;
