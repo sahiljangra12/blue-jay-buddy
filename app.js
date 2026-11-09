@@ -578,6 +578,7 @@ function viewHome(){
     ${dueTileHTML()}
   </section>
   ${openNowHTML()}
+  <section class="tile near-tile io" data-near-slot aria-label="Shuttles near you"></section>
   ${keyDateHTML()}
   ${planFirst ? plan : ""}
   ${favItems.length ? `<section class="io" aria-label="Favorites"><h2 class="subhead">Your favorites</h2><div class="chips">${favItems.map(it => `<a class="chiplink" href="${esc(it.u)}" target="_blank" rel="noopener"><span class="badge sm b-${it.cat}">${svg(it.cat)}</span>${esc(it.t)}</a>`).join("")}</div></section>` : ""}
@@ -714,7 +715,7 @@ function viewSection(id){
     <div class="grid" style="margin-top:20px">${D.items.filter(i => i.cat === id).map((it,i) => card(it,i)).join("")}</div></section>`;
   const body = id === "map" ? D.buildings.map((b,i) => bCard(b,i)).join("") : D.items.filter(i => i.cat === id).map((it,i) => card(it,i)).join("");
   const related = id === "map" ? [] : [...new Set(D.items.filter(i => i.cat === id && i.g).map(i => i.g))];
-  return `${id === "move" ? shuttleBoardHTML() : ""}${id === "safety" ? sosTile() : ""}<section>${id === "move" ? head("", "More ways to get around.") : ""}<div class="grid">${body}</div></section>
+  return `${id === "move" ? `<section class="tile near-tile" data-near-slot aria-label="Shuttles near you"></section>` + shuttleBoardHTML() : ""}${id === "safety" ? sosTile() : ""}<section>${id === "move" ? head("", "More ways to get around.") : ""}<div class="grid">${body}</div></section>
   ${id === "map" ? bento() : ""}
   ${related.length ? `<section class="io"><h3 class="subhead">How-to guides</h3><div class="grid">${related.map((g,i) => guideCard(g,i)).join("")}</div></section>` : ""}`;
 }

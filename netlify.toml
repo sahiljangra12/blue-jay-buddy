@@ -1,7 +1,7 @@
 # Netlify serves the same static site as GitHub Pages, plus three small server helpers under /api/*.
 # The static files are copied to dist/ so server code and node_modules are never published.
 [build]
-  command = "mkdir -p dist && cp -r index.html privacy.html stats.html styles.css data.js guides.js photos.js hours.js canvas.js import.js live.js tools.js motion.js events.json app.js sw.js manifest.webmanifest assets .nojekyll dist/"
+  command = "mkdir -p dist && cp -r index.html privacy.html stats.html styles.css data.js guides.js photos.js hours.js canvas.js import.js live.js tools.js motion.js near.js events.json app.js sw.js manifest.webmanifest assets .nojekyll dist/"
   publish = "dist"
 
 [functions]
