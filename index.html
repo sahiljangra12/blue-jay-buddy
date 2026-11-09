@@ -17,14 +17,14 @@
 <meta property="og:image" content="https://sahiljangra12.github.io/blue-jay-buddy/assets/og.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preload" href="assets/fonts/barlow-600.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="styles.css?v=15">
+<link rel="stylesheet" href="styles.css?v=16">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
 <header class="gnav" id="gnav">
   <div class="gnav-inner">
-    <a class="brand" href="#" data-tab="home" aria-label="Blue Jay Buddy home"><img src="assets/mark.png" alt="" width="32" height="32"><span>Blue Jay Buddy</span></a>
+    <a class="brand" href="#" data-tab="home" aria-label="Blue Jay Buddy home"><img class="brand-logo" src="assets/logo-dark.png" srcset="assets/logo-dark.png 1x, assets/logo-dark@2x.png 2x" alt="Blue Jay Buddy" width="110" height="38"></a>
     <nav class="gnav-links" aria-label="Main">
       <button type="button" data-tab="home">Today</button>
       <button type="button" data-tab="academics">Classes</button>
@@ -43,9 +43,10 @@
 </header>
 
 <section class="hero" id="top">
-  <figure class="hero-photo">
-    <img id="heroImg" src="assets/photos/gilman-1600.webp" srcset="assets/photos/gilman-800.webp 800w, assets/photos/gilman-1600.webp 1600w" sizes="100vw" alt="Gilman Hall" fetchpriority="high" decoding="async">
-    <figcaption id="heroCredit" class="credit"></figcaption>
+  <figure class="hero-photo" id="heroShow" aria-roledescription="slideshow" aria-label="Campus photos">
+    <img class="slide on" id="heroImg" src="assets/photos/gilman-1600.webp" srcset="assets/photos/gilman-800.webp 800w, assets/photos/gilman-1600.webp 1600w" sizes="100vw" alt="Gilman Hall" fetchpriority="high" decoding="async">
+    <figcaption class="hero-cap"><span id="heroPlace"></span><span id="heroCredit" class="credit"></span></figcaption>
+    <button class="show-btn" id="showBtn" type="button" aria-label="Pause the slideshow" aria-pressed="false"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
   </figure>
   <div class="hero-inner">
     <p class="hero-eyebrow" id="greet">Hello, Blue Jay</p>
@@ -59,6 +60,7 @@
     <div class="hero-buttons">
       <button class="pill primary" id="planBtn" type="button" data-wizard></button>
       <button class="pill link" type="button" data-tab="guides">All guides</button>
+      <a class="pill link" href="https://apply.jhu.edu/tours-and-events/" target="_blank" rel="noopener">360° virtual tour</a>
     </div>
     <div class="quick" id="quick" aria-label="Quick actions"></div>
   </div>
@@ -72,7 +74,7 @@
 
 <footer class="foot">
   <div class="wrap foot-inner">
-    <div class="foot-brand"><img src="assets/logo.webp" alt="Blue Jay Buddy logo" width="88" height="88"><div><strong>Blue Jay Buddy</strong><p>An independent student project. Not an official Johns Hopkins University website.</p></div></div>
+    <div class="foot-brand"><img class="foot-logo" src="assets/logo-dark@2x.png" alt="Blue Jay Buddy" width="220" height="77"><p>An independent student project. Not an official Johns Hopkins University website.</p></div>
     <p>Hours and schedules change, so every link goes to the official page. Your plan, classes and favorites stay in your own browser.</p>
     <details class="credits"><summary>Photo credits</summary><ul id="credits"></ul></details>
     <p class="foot-links"><a href="privacy.html">Privacy</a><a href="stats.html">Usage</a><a href="https://github.com/sahiljangra12/blue-jay-buddy">GitHub</a><a href="mailto:sfnu1@jh.edu?subject=Blue%20Jay%20Buddy%3A%20broken%20link">Report a problem</a><button class="linkbtn" type="button" data-settings>Settings</button></p>
@@ -94,14 +96,15 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="data.js?v=15"></script>
-<script src="guides.js?v=15"></script>
-<script src="photos.js?v=15"></script>
-<script src="hours.js?v=15"></script>
-<script src="canvas.js?v=15"></script>
-<script src="import.js?v=15"></script>
-<script src="live.js?v=15"></script>
-<script src="app.js?v=15"></script>
-<script src="tools.js?v=15"></script>
+<script src="data.js?v=16"></script>
+<script src="guides.js?v=16"></script>
+<script src="photos.js?v=16"></script>
+<script src="hours.js?v=16"></script>
+<script src="canvas.js?v=16"></script>
+<script src="import.js?v=16"></script>
+<script src="live.js?v=16"></script>
+<script src="app.js?v=16"></script>
+<script src="tools.js?v=16"></script>
+<script src="motion.js?v=16"></script>
 </body>
 </html>

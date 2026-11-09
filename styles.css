@@ -1227,3 +1227,59 @@ body[data-view="section"] .sec-banner{margin-top:0}
 .brand img{border-radius:8px}
 .foot-brand img{border-radius:18px;width:88px;height:88px}
 .welcome .pill.primary{background:#fff;color:#000}.welcome .pill.primary:hover{background:#dfe3ea}
+.brand-logo{height:38px;width:auto;border-radius:0!important;display:block}
+.foot-logo{width:220px;height:auto;border-radius:0!important}
+.welcome-logo{width:260px;height:auto}
+.foot-brand{align-items:center}
+
+/* =========================================================================
+   v14 "Lively": logo blues, a cinematic hero slideshow, panels that come
+   alive on scroll, and a looping Baltimore video. Reduced motion = still.
+   ========================================================================= */
+:root,:root[data-theme="dark"],:root[data-theme="light"]{--jay:#1E66D6;--jay-deep:#0A4DC2;--jay-sky:#7DB8FF}
+/* color comes back: logo blues on actions and live state */
+.tab[aria-selected="true"]{border-bottom-color:var(--jay)}
+.kicker,.eyebrow,.panel .kicker{color:var(--jay-sky)}
+.pill.primary,.hero .pill.primary,.xbtn{border-color:var(--jay)}
+.pill.primary,.hero .pill.primary{background:var(--jay);color:#fff}
+.pill.primary:hover,.hero .pill.primary:hover,.xbtn:hover{background:#fff;color:#000;border-color:#fff}
+.next{border-color:var(--jay)!important;background:linear-gradient(160deg,#071a3d 0%,#000 70%)!important}
+.route-chip[aria-selected="true"],.route-chip[aria-pressed="true"]{background:var(--jay);border-color:var(--jay);color:#fff}
+.gpill{border-color:var(--jay);background:var(--jay)}
+.welcome .pill.primary{background:var(--jay);color:#fff}
+
+/* hero slideshow */
+.hero-photo .slide{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.6s ease;animation:none;will-change:transform,opacity}
+.hero-photo .slide.on{opacity:1}
+.hero-photo .slide.drift-a{animation:driftA 9s ease-out both}
+.hero-photo .slide.drift-b{animation:driftB 9s ease-out both}
+.hero-photo.still .slide{animation-play-state:paused}
+@keyframes driftA{from{transform:scale(1.14) translate(-1.5%,1%)}to{transform:scale(1.02) translate(1%,-1%)}}
+@keyframes driftB{from{transform:scale(1.14) translate(1.5%,-1%)}to{transform:scale(1.02) translate(-1%,1%)}}
+.hero-cap{position:absolute;right:max(16px,env(safe-area-inset-right,0px));bottom:14px;z-index:3;display:grid;justify-items:end;gap:2px;text-align:right;margin:0}
+#heroPlace{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#fff}
+.hero-cap .credit{position:static}
+.show-btn{position:absolute;z-index:3;right:max(16px,env(safe-area-inset-right,0px));top:72px;width:36px;height:36px;border-radius:0;border:1px solid rgba(255,255,255,.5);background:rgba(0,0,0,.35);color:#fff;display:grid;place-items:center;cursor:pointer}
+.show-btn svg{width:14px;height:14px}.show-btn:hover{background:#fff;color:#000}
+.hero{min-height:min(88svh,900px)}
+@media (max-width:820px){.hero{min-height:74svh}.hero-cap{bottom:8px}#heroPlace{font-size:10px}.show-btn{top:64px}}
+
+/* panels come alive */
+.panel img,.panel video,.sec-banner img{transform:scale(1.1);transition:transform 2.6s cubic-bezier(.2,.7,.2,1)}
+.panel.inview img,.panel.inview video,.sec-banner.inview img{transform:scale(1)}
+.panel .panel-in>*{opacity:0;transform:translateY(22px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.7,.2,1)}
+.panel.inview .panel-in>*{opacity:1;transform:none}
+.panel.inview .panel-in>*:nth-child(2){transition-delay:.12s}.panel.inview .panel-in>*:nth-child(3){transition-delay:.24s}
+.panel-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
+.panel.video::after{background:linear-gradient(0deg,rgba(0,0,0,.88) 0%,rgba(0,0,0,.35) 50%,rgba(0,0,0,.15) 100%)}
+.panel .vid-btn{top:20px;right:16px}
+/* live dots breathe */
+.dot.live,.open-pill.open .dot{animation:breathe 2.4s ease-in-out infinite}
+@keyframes breathe{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--ok) 60%,transparent)}50%{box-shadow:0 0 0 6px transparent}}
+@media (prefers-reduced-motion:reduce){
+  .hero-photo .slide{transition:none;animation:none!important}
+  .panel img,.panel video,.sec-banner img{transform:none;transition:none}
+  .panel .panel-in>*{opacity:1;transform:none;transition:none}
+  .dot.live,.open-pill.open .dot{animation:none}
+}
+.hero-inner{pointer-events:none}.hero-inner>*{pointer-events:auto}

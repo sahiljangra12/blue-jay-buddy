@@ -5,7 +5,10 @@ const D = window.BJB, G = window.BJB_GUIDES || {}, MAPS = D.maps;
 const PICS = window.BJB_PICS || {}, PIC = window.BJB_PIC || (() => "");
 // Photo credit text for a picture key, linking to its Wikimedia Commons page.
 const credit = k => PICS[k] ? `<a href="${esc(PICS[k].page)}" target="_blank" rel="noopener">Photo: ${esc(PICS[k].author.replace(/\s*\(talk\)/, ""))}, ${esc(PICS[k].license)}</a>` : "";
-const photo = (k, alt = "", cls = "", eager = false) => PICS[k] ? `<img class="${cls}" src="${PIC(k, 800)}" srcset="${PIC(k, 800)} 800w, ${PIC(k, 1600)} 1600w" sizes="(min-width: 900px) 50vw, 100vw" alt="${esc(alt)}" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async">` : "";
+// srcset includes the 2560 and 3840 (4K) versions when the original photo is that large.
+const srcset = k => [800, 1600, ...((PICS[k] && PICS[k].big) || [])].map(w => `${PIC(k, w)} ${w}w`).join(", ");
+const photo = (k, alt = "", cls = "", eager = false, sizes = "100vw") => PICS[k] ? `<img class="${cls}" src="${PIC(k, 1600)}" srcset="${srcset(k)}" sizes="${sizes}" alt="${esc(alt)}" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async">` : "";
+window.BJB_SRCSET = srcset; window.BJB_CREDIT = credit;
 // Buildings that have a photo.
 const BLD_PIC = { "Gilman Hall": "gilman", "Mason Hall": "mason", "Maryland Hall": "maryland", "Mudd Hall": "mudd", "Mergenthaler Hall": "mergenthaler", "Malone Hall": "malone",
   "Brody Learning Commons": "brody", "Homewood Museum": "museum", "Levering Hall": "levering", "Shriver Hall": "shriver", "Hackerman Hall": "decker" };
@@ -158,11 +161,9 @@ $("#themeBtn").addEventListener("click", () => {
 });
 function setSky(){
   const now = new Date(), h = now.getHours(), mo = now.getMonth();
-  // Hero photo follows the clock and the season.
-  const key = (h >= 17 || h < 6) ? "quad-dusk" : (mo === 11 || mo <= 1) ? "gilman-snow" : (mo >= 2 && mo <= 4) ? "quad-spring" : "gilman";
-  const alt = { "quad-dusk": "Wyman Quad at dusk", "gilman-snow": "Gilman Hall from the Upper Quad in winter", "quad-spring": "Wyman Quad in spring", "gilman": "Gilman Hall" }[key];
-  const img = $("#heroImg");
-  if (img && img.dataset.key !== key){ img.dataset.key = key; img.srcset = `${PIC(key, 800)} 800w, ${PIC(key, 1600)} 1600w`; img.src = PIC(key, 1600); img.alt = alt; $("#heroCredit").innerHTML = credit(key); }
+  // Hero slideshow: the first photo follows the clock and the season; motion.js plays the rest.
+  const first = (h >= 17 || h < 6) ? "quad-dusk" : (mo === 11 || mo <= 1) ? "gilman-snow" : (mo >= 2 && mo <= 4) ? "quad-spring" : "gilman";
+  window.BJB_HERO = window.BJB_HERO || { first, slides: [first, ...["decker", "gilman-tower", "harbor-sunset", "mason", "quad-spring", "skyline-night"].filter(k => k !== first && PICS[k])] };
   document.body.dataset.sky = h >= 5 && h < 8 ? "dawn" : h >= 8 && h < 17 ? "day" : h >= 17 && h < 20 ? "dusk" : "night";
   const g = h < 5 ? "Up late" : h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : h < 21 ? "Good evening" : "Good night";
   $("#greet").textContent = `${g}${profile?.name ? ", " + profile.name : ""} · ${new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})}`;
@@ -600,6 +601,13 @@ function launcher(){
     <div class="panels">${PANELS.map(([id, k, h]) => `<section class="panel" aria-label="${esc(k)}">${photo(SEC_PIC[id][0], SEC_PIC[id][1])}
       <div class="panel-in"><span class="kicker">${esc(k)}</span><h3>${esc(h)}</h3><button class="xbtn" type="button" data-tab="${id}">Explore</button></div>
       <span class="credit">${credit(SEC_PIC[id][0])}</span></section>`).join("")}
+      <section class="panel video" aria-label="Baltimore">
+        <video class="panel-video" muted loop playsinline preload="none" poster="assets/video/baltimore-aerial.jpg" aria-hidden="true">
+          <source src="assets/video/baltimore-aerial.mp4" type="video/mp4"></video>
+        <div class="panel-in"><span class="kicker">Baltimore</span><h3>Baltimore, right outside the gates</h3>
+        <div class="row"><button class="xbtn" type="button" data-tab="fun">Things to do</button><button class="xbtn" type="button" data-guide="citybus">Free city buses</button></div></div>
+        <button class="show-btn vid-btn" type="button" aria-label="Pause the video" aria-pressed="false"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
+        <span class="credit" id="vidCredit"></span></section>
       <section class="panel sos" aria-label="Safety"><div class="panel-in"><span class="kicker">Safety</span><h3>Emergency numbers, escorts and crisis support</h3>
       <div class="row"><button class="xbtn" type="button" data-tab="safety">Explore</button><a class="xbtn red" href="tel:4105167777" data-label="Campus emergency" data-num="410-516-7777">Call campus emergency</a></div></div></section></div>`;
 }
@@ -1269,7 +1277,7 @@ if (!profile && store.get("bjb-asked", "") !== new Date().toDateString()){
   setTimeout(() => {
     if (sheet.open || profile) return;
     openSheet(`<div class="call-sheet welcome">
-      <img class="welcome-logo" src="assets/logo.webp" alt="Blue Jay Buddy logo" width="148" height="148">
+      <img class="welcome-logo" src="assets/logo-dark@2x.png" alt="Blue Jay Buddy" width="260" height="91">
       <h2 id="sheetTitle">First, let's make it yours</h2>
       <p>Tell Blue Jay Buddy your program, your classes and how you get around. You'll get your next class, deadlines, the right shuttles and a checklist made for you.</p>
       <p class="note">Takes about a minute. No login, and it stays on this device.</p>

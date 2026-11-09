@@ -1,5 +1,6 @@
 // Campus photos from Wikimedia Commons (public domain or Creative Commons). Credits are shown in the footer
-// and on each photo. Files are in assets/photos/<key>-800.webp and -1600.webp (built by scripts/build-photos.mjs).
+// and on each photo. Files: assets/photos/<key>-800/-1600 .webp, plus -2560 and -3840 (4K) where the original is that large
+// (listed in "big"). Built by scripts/build-photos.mjs.
 window.BJB_PICS = {
  "quad-spring": {
   "title": "WymanQuad.jpg",
@@ -7,7 +8,8 @@ window.BJB_PICS = {
   "author": "Iracaz (talk)",
   "license": "Public domain",
   "licenseUrl": "",
-  "ratio": 1.058
+  "ratio": 1.058,
+  "big": []
  },
  "quad-dusk": {
   "title": "Wymanquad.jpg",
@@ -15,7 +17,11 @@ window.BJB_PICS = {
   "author": "Iracaz (talk)",
   "license": "Public domain",
   "licenseUrl": "",
-  "ratio": 1.236
+  "ratio": 1.236,
+  "big": [
+   2560,
+   3840
+  ]
  },
  "gilman-snow": {
   "title": "Gilman Hall, as seen from the Upper Quadrangle in the winter (Johns Hopkins University).jpg",
@@ -23,7 +29,8 @@ window.BJB_PICS = {
   "author": "Unknown",
   "license": "Public domain",
   "licenseUrl": "",
-  "ratio": 1.509
+  "ratio": 1.509,
+  "big": []
  },
  "gilman": {
   "title": "Gilman Hall, Johns Hopkins University, Baltimore, MD.jpg",
@@ -31,7 +38,10 @@ window.BJB_PICS = {
   "author": "Daderot",
   "license": "Public domain",
   "licenseUrl": "",
-  "ratio": 1.333
+  "ratio": 1.333,
+  "big": [
+   2560
+  ]
  },
  "gilman-tower": {
   "title": "Gilman Hall JHU.jpg",
@@ -39,7 +49,10 @@ window.BJB_PICS = {
   "author": "User: (WT-shared) Svyatoslav at wts wikivoyage",
   "license": "Public domain",
   "licenseUrl": "",
-  "ratio": 1.504
+  "ratio": 1.504,
+  "big": [
+   2560
+  ]
  },
  "decker": {
   "title": "Panorama of buildings on the Decker Quad.jpg",
@@ -47,7 +60,11 @@ window.BJB_PICS = {
   "author": "chris.rycroft",
   "license": "CC BY 2.0",
   "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-  "ratio": 3.902
+  "ratio": 3.902,
+  "big": [
+   2560,
+   3840
+  ]
  },
  "mason": {
   "title": "Mason Hall in the Decker Quad - 53495079134.jpg",
@@ -55,7 +72,11 @@ window.BJB_PICS = {
   "author": "chris.rycroft",
   "license": "CC BY 2.0",
   "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-  "ratio": 1.778
+  "ratio": 1.778,
+  "big": [
+   2560,
+   3840
+  ]
  },
  "north-gate": {
   "title": "North Gate on the Homewood Campus of Johns Hopkins University.jpg",
@@ -63,7 +84,11 @@ window.BJB_PICS = {
   "author": "chris.rycroft",
   "license": "CC BY 2.0",
   "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-  "ratio": 1.501
+  "ratio": 1.501,
+  "big": [
+   2560,
+   3840
+  ]
  },
  "brody": {
   "title": "Outside of Brody Learning Commons.jpg",
@@ -71,7 +96,8 @@ window.BJB_PICS = {
   "author": "Mtesta4",
   "license": "CC BY-SA 4.0",
   "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-  "ratio": 1.333
+  "ratio": 1.333,
+  "big": []
  },
  "museum": {
   "title": "Homewood Museum, Johns Hopkins University, Baltimore, MD.jpg",
@@ -79,7 +105,10 @@ window.BJB_PICS = {
   "author": "Daderot",
   "license": "Public domain",
   "licenseUrl": "",
-  "ratio": 1.333
+  "ratio": 1.333,
+  "big": [
+   2560
+  ]
  },
  "levering": {
   "title": "View from Levering Plaza.jpg",
@@ -87,7 +116,10 @@ window.BJB_PICS = {
   "author": "Iracaz",
   "license": "CC BY-SA 3.0",
   "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-  "ratio": 1.333
+  "ratio": 1.333,
+  "big": [
+   2560
+  ]
  },
  "maryland": {
   "title": "Maryland Hall, Johns Hopkins University, Jan 2011.jpg",
@@ -95,7 +127,11 @@ window.BJB_PICS = {
   "author": "Cvenghaus",
   "license": "CC BY-SA 3.0",
   "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-  "ratio": 1.501
+  "ratio": 1.501,
+  "big": [
+   2560,
+   3840
+  ]
  },
  "mudd": {
   "title": "Mudd Hall, Johns Hopkins University, Baltimore, MD.jpg",
@@ -103,7 +139,10 @@ window.BJB_PICS = {
   "author": "Daderot",
   "license": "Public domain",
   "licenseUrl": "",
-  "ratio": 1.333
+  "ratio": 1.333,
+  "big": [
+   2560
+  ]
  },
  "mergenthaler": {
   "title": "Mergenthaler Hall, Johns Hopkins University, Baltimore, MD.jpg",
@@ -111,7 +150,10 @@ window.BJB_PICS = {
   "author": "Daderot",
   "license": "Public domain",
   "licenseUrl": "",
-  "ratio": 1.333
+  "ratio": 1.333,
+  "big": [
+   2560
+  ]
  },
  "malone": {
   "title": "Covered walkway and entrance to Malone Hall.jpg",
@@ -119,7 +161,11 @@ window.BJB_PICS = {
   "author": "chris.rycroft",
   "license": "CC BY 2.0",
   "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-  "ratio": 0.651
+  "ratio": 0.651,
+  "big": [
+   2560,
+   3840
+  ]
  },
  "penn": {
   "title": "Baltimore Pennsylvania Station.jpg",
@@ -127,7 +173,10 @@ window.BJB_PICS = {
   "author": "Irteagle102704 at English Wikipedia",
   "license": "Public domain",
   "licenseUrl": "",
-  "ratio": 1.333
+  "ratio": 1.333,
+  "big": [
+   2560
+  ]
  },
  "harbor": {
   "title": "Baltimore's Inner Harbor, viewed from a slope of Federal Hill Park.jpg",
@@ -135,7 +184,11 @@ window.BJB_PICS = {
   "author": "Sdkb",
   "license": "CC BY-SA 4.0",
   "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-  "ratio": 1.778
+  "ratio": 1.778,
+  "big": [
+   2560,
+   3840
+  ]
  },
  "hampden": {
   "title": "36th and Roland Ave. Hampden MD1.jpg",
@@ -143,7 +196,10 @@ window.BJB_PICS = {
   "author": "Acroterion",
   "license": "CC BY-SA 4.0",
   "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-  "ratio": 1.421
+  "ratio": 1.421,
+  "big": [
+   2560
+  ]
  },
  "peabody": {
   "title": "Peabody Institute, Mount Vernon Place, Baltimore, MD.jpg",
@@ -151,7 +207,10 @@ window.BJB_PICS = {
   "author": "Daderot",
   "license": "Public domain",
   "licenseUrl": "",
-  "ratio": 1.333
+  "ratio": 1.333,
+  "big": [
+   2560
+  ]
  },
  "peabody-library": {
   "title": "Johns Hopkins Library.jpg",
@@ -159,7 +218,34 @@ window.BJB_PICS = {
   "author": "Nikhil Kulkarni",
   "license": "CC BY-SA 4.0",
   "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-  "ratio": 0.87
+  "ratio": 0.87,
+  "big": [
+   2560
+  ]
+ },
+ "harbor-sunset": {
+  "title": "Baltimore Sunset, 2018-09-15.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Baltimore_Sunset,_2018-09-15.jpg",
+  "author": "Patrick Gillespie",
+  "license": "CC BY 2.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+  "ratio": 1.501,
+  "big": [
+   2560,
+   3840
+  ]
+ },
+ "skyline-night": {
+  "title": "Baltimore SKY Line 4 AGS.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Baltimore_SKY_Line_4_AGS.jpg",
+  "author": "Astoddard73",
+  "license": "CC BY-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+  "ratio": 2.462,
+  "big": [
+   2560,
+   3840
+  ]
  },
  "shriver": {
   "title": "Front, Shriver Hall (1954; Buckler, Fenhagen, Meyer and Ayers, architects), Johns Hopkins University (JHU) Homewood Campus, 3400 N. Charles Street, Baltimore, MD 21218 (32279247417).jpg",
@@ -167,7 +253,11 @@ window.BJB_PICS = {
   "author": "Baltimore Heritage from Baltimore, MD, USA",
   "license": "CC0",
   "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-  "ratio": 1.333
+  "ratio": 1.333,
+  "big": [
+   2560,
+   3840
+  ]
  },
  "monument": {
   "title": "Johns Hopkins Monument (1935, Hans Schuler), N. Charles Street and 33rd Street, Baltimore, MD 21218 (34418532764).jpg",
@@ -175,7 +265,10 @@ window.BJB_PICS = {
   "author": "Baltimore Heritage from Baltimore, MD, USA",
   "license": "CC0",
   "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-  "ratio": 0.75
+  "ratio": 0.75,
+  "big": [
+   2560
+  ]
  }
 };
 window.BJB_PIC = (key, size = 800) => window.BJB_PICS[key] ? `assets/photos/${key}-${size}.webp` : "";
