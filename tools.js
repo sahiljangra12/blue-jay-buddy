@@ -243,3 +243,5 @@ document.addEventListener("change", e => {
 applyDisplay();
 window.BJB_TOOLS = { toolsSheet, sosSheet, displayHTML, drawMap, toggleMap };
 })();
+// Top bar: see-through over the photo, solid once you scroll.
+(() => { const f = () => document.body.classList.toggle("scrolled", scrollY > 40); addEventListener("scroll", f, { passive: true }); f(); })();

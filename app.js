@@ -148,7 +148,7 @@ const validTabs = ["home", "guides", ...D.sections.map(s => s.id)];
 let tab = validTabs.includes(location.hash.slice(1)) ? location.hash.slice(1) : "home";
 
 /* ================= theme, greeting, hero photo ================= */
-function applyTheme(t){ t ? document.documentElement.setAttribute("data-theme", t) : document.documentElement.removeAttribute("data-theme"); }
+function applyTheme(){ document.documentElement.setAttribute("data-theme", "dark"); } // the design is dark only
 applyTheme(store.get("bjb-theme", null));
 $("#themeBtn").addEventListener("click", () => {
   const dark = document.documentElement.getAttribute("data-theme") === "dark" ||
@@ -581,22 +581,27 @@ function viewHome(){
   ${planFirst ? plan : ""}
   ${favItems.length ? `<section class="io" aria-label="Favorites"><h2 class="subhead">Your favorites</h2><div class="chips">${favItems.map(it => `<a class="chiplink" href="${esc(it.u)}" target="_blank" rel="noopener"><span class="badge sm b-${it.cat}">${svg(it.cat)}</span>${esc(it.t)}</a>`).join("")}</div></section>` : ""}
   ${contextCard()}
-  <section class="io" aria-labelledby="h-apps">
-    <h2 class="subhead" id="h-apps">Explore</h2>
-    <nav class="launcher" aria-label="Sections and apps">${launcher()}</nav>
-  </section>
   <section class="tile events-tile io" id="eventsCard" aria-label="Events" hidden></section>
   ${planFirst ? "" : plan}
+  <section class="io" aria-labelledby="h-apps">
+    <h2 class="subhead" id="h-apps">Explore Hopkins</h2>
+    <nav class="launcher" aria-label="Sections and apps">${launcher()}</nav>
+  </section>
   <p class="feedback-line">Built by a student. Something missing or wrong? <a href="mailto:${D.contact}?subject=${encodeURIComponent("Blue Jay Buddy feedback")}">Tell me</a> · <a href="privacy.html">Privacy</a></p>`;
 }
 // The launcher: Hopkins apps students open daily, then every section of Blue Jay Buddy.
-// "Explore": one photo tile per section, plus the Hopkins apps students open every day.
+// "Explore": full-screen photo panels, one per section, plus the Hopkins apps students open every day.
+const PANELS = [["academics","Classes","Your classes, deadlines and key dates"],["move","Get around","Live shuttles, night rides and the city"],
+  ["fun","Events & rec","What's on at Hopkins this week"],["food","Food","Where to eat and what's open"],["map","Buildings","Every building, with walking directions"],
+  ["health","Health","Doctors, counseling and 24/7 support"],["services","Services","IDs, IT, visas, careers and housing"],["guides","Guides","How to do anything at Hopkins"]];
 function launcher(){
-  const tiles = [["academics","Classes"],["move","Get around"],["food","Food"],["fun","Events & rec"],["map","Buildings"],["health","Health"],["services","Services"],["guides","Guides"]];
   const apps = [["Canvas","https://canvas.jhu.edu","academics"],["SIS","https://sis.jhu.edu","services"],["Library","https://www.library.jhu.edu","book"],["Dining","https://studentaffairs.jhu.edu/dining/where-to-eat/","food"]];
-  return `<div class="explore">${tiles.map(([id, l], i) => `<button class="ptile${i === 0 ? " wide" : ""}" type="button" data-tab="${id}">${photo(SEC_PIC[id][0], "")}<span class="ptile-l">${l}</span></button>`).join("")}
-    <button class="ptile safety" type="button" data-tab="safety"><span class="ptile-ic">${svg("safety")}</span><span class="ptile-l">Safety</span></button></div>
-    <div class="applinks">${apps.map(([l, u, ic]) => `<a class="applink" href="${u}" target="_blank" rel="noopener">${svg(ic)}${l}${svg("open")}</a>`).join("")}<button class="applink" type="button" data-tools="gpa">${svg("calc")}Study tools</button><button class="applink" type="button" data-sos>${svg("alert")}Emergency card</button></div>`;
+  return `<div class="applinks">${apps.map(([l, u, ic]) => `<a class="applink" href="${u}" target="_blank" rel="noopener">${svg(ic)}${l}${svg("open")}</a>`).join("")}<button class="applink" type="button" data-tools="gpa">${svg("calc")}Study tools</button><button class="applink" type="button" data-sos>${svg("alert")}Emergency card</button></div>
+    <div class="panels">${PANELS.map(([id, k, h]) => `<section class="panel" aria-label="${esc(k)}">${photo(SEC_PIC[id][0], SEC_PIC[id][1])}
+      <div class="panel-in"><span class="kicker">${esc(k)}</span><h3>${esc(h)}</h3><button class="xbtn" type="button" data-tab="${id}">Explore</button></div>
+      <span class="credit">${credit(SEC_PIC[id][0])}</span></section>`).join("")}
+      <section class="panel sos" aria-label="Safety"><div class="panel-in"><span class="kicker">Safety</span><h3>Emergency numbers, escorts and crisis support</h3>
+      <div class="row"><button class="xbtn" type="button" data-tab="safety">Explore</button><a class="xbtn red" href="tel:4105167777" data-label="Campus emergency" data-num="410-516-7777">Call campus emergency</a></div></div></section></div>`;
 }
 function checkRow(id){
   return `<li class="${doneSet.has(id)?"done":""}">
@@ -733,6 +738,7 @@ function renderTabs(q){
 function render(quiet = false){
   evShown = [];
   const q = $("#q").value.trim();
+  document.body.dataset.view = q || tab === "home" ? "home" : "section"; // section pages open on their own photo banner
   renderTabs(q);
   $("#main").classList.toggle("calm", quiet);
   try {
@@ -754,7 +760,7 @@ function go(t, scroll = true){
   tab = t; $("#q").value = "";
   history.replaceState(null, "", t === "home" ? location.pathname : "#" + t);
   render();
-  if (scroll) $(".tabs").scrollIntoView({behavior: reduced() ? "auto" : "smooth"});
+  if (scroll) t === "home" ? $(".tabs").scrollIntoView({behavior: reduced() ? "auto" : "smooth"}) : window.scrollTo({ top: 0 });
 }
 
 /* ================= toast / copy ================= */
@@ -1219,7 +1225,7 @@ document.addEventListener("click", e => {
   if ((el = T("[data-push-on]"))){ enablePush().then(() => remindersSheet()); return; }
   if ((el = T("[data-push-off]"))){ disablePush().then(() => remindersSheet()); return; }
   if (T("#icsBtn")) exportICS();
-  if (T("#searchBtn")){ window.scrollTo({top:0, behavior: reduced() ? "auto" : "smooth"}); setTimeout(() => $("#q").focus(), 300); }
+  if (T("#searchBtn")){ document.body.dataset.view = "home"; window.scrollTo({top:0, behavior: reduced() ? "auto" : "smooth"}); setTimeout(() => $("#q").focus(), 300); }
 });
 
 document.addEventListener("submit", e => {
