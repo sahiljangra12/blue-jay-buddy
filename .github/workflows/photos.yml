@@ -19,15 +19,23 @@ jobs:
         run: node scripts/fetch-photos.mjs
       - if: ${{ inputs.mode == 'final' }}
         run: node scripts/build-photos.mjs
+      - if: ${{ inputs.mode == 'media' }}
+        run: node scripts/fetch-media.mjs
+      - if: ${{ inputs.mode == 'video' }}
+        run: node scripts/build-video.mjs
       - name: Commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898341+github-actions[bot]@users.noreply.github.com"
-          if [ "${{ inputs.mode }}" = "candidates" ]; then
+          if [ "${{ inputs.mode }}" = "media" ]; then
+            git checkout -B media-candidates
+            git add -f media-candidates
+            git commit -m "Media candidates for review" && git push -f origin media-candidates
+          elif [ "${{ inputs.mode }}" = "candidates" ]; then
             git checkout -B photo-candidates
             git add -f photo-candidates
             git commit -m "Photo candidates for review" && git push -f origin photo-candidates
           else
-            git add assets/photos assets/photos.json
+            git add assets/photos assets/photos.json assets/video 2>/dev/null || true
             git diff --cached --quiet || (git commit -m "Add campus photos" && git push)
           fi
