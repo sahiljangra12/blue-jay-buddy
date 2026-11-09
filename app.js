@@ -580,6 +580,7 @@ function viewHome(){
   ${openNowHTML()}
   <section class="tile near-tile io" data-near-slot aria-label="Shuttles near you"></section>
   ${keyDateHTML()}
+  <div data-install-slot></div>
   ${planFirst ? plan : ""}
   ${favItems.length ? `<section class="io" aria-label="Favorites"><h2 class="subhead">Your favorites</h2><div class="chips">${favItems.map(it => `<a class="chiplink" href="${esc(it.u)}" target="_blank" rel="noopener"><span class="badge sm b-${it.cat}">${svg(it.cat)}</span>${esc(it.t)}</a>`).join("")}</div></section>` : ""}
   ${contextCard()}
@@ -833,6 +834,21 @@ function guideSheet(id){
       <button class="pill ghost" type="button" data-close>Close</button>
     </div>
     <p class="note" style="margin-top:14px">Steps out of date? <a href="${reportHref("Guide: " + g.title)}" data-feedback data-about="${esc("Guide: " + g.title)}">Report a problem</a></p>`);
+}
+// Phones: "More" holds every section that isn't in the bottom bar, plus tools. Safety comes first.
+function moreSheet(){
+  const sec = [["safety","Safety","safety"],["food","Food","food"],["health","Health","health"],["services","Services","services"],["map","Buildings","building"],["guides","Guides","guide"]];
+  openSheet(`<div class="wiz-top"><span class="eyebrow">More</span><button class="iconx" type="button" data-close aria-label="Close">${svg("close")}</button></div>
+    <h2 id="sheetTitle" class="sr-only">More</h2>
+    <a class="more-sos" href="tel:4105167777" data-label="Campus emergency" data-num="410-516-7777">${svg("phone")}<span><b>Campus emergency</b><small>410-516-7777 · Homewood</small></span></a>
+    <div class="more-grid">${sec.map(([id, l, ic]) => `<button type="button" class="more-item${id === "safety" ? " sos" : ""}" data-tab="${id}">${svg(ic)}<span>${l}</span></button>`).join("")}</div>
+    <div class="more-list">
+      <button type="button" data-tools="gpa">${svg("calc")}Study tools</button>
+      <button type="button" data-sos>${svg("alert")}Emergency card</button>
+      <button type="button" data-feedback>${svg("edit")}Send feedback</button>
+      <a href="https://apply.jhu.edu/tours-and-events/" target="_blank" rel="noopener">${svg("map")}360° virtual tour</a>
+      <button type="button" data-settings>${svg("services")}Settings and backup</button>
+    </div>`);
 }
 function settingsSheet(){
   openSheet(`<div class="wiz-top"><span class="eyebrow">Settings</span><button class="iconx" type="button" data-close aria-label="Close">${svg("close")}</button></div>
@@ -1188,6 +1204,8 @@ document.addEventListener("click", e => {
     const w = el.dataset.go;
     if (sheet.open) closeSheet();
     if (w === "week") go("academics");
+    else if (w === "more") moreSheet();
+    else if (w === tab) window.scrollTo({ top: 0, behavior: reduced() ? "auto" : "smooth" }); // tap the current tab again to jump to the top
     else go(w);
     return;
   }

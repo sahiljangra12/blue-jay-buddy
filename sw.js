@@ -1,7 +1,7 @@
 // Offline support: the app shell is cached so the hub opens without a connection.
 // When you change a file, bump VERSION here and the ?v= numbers in index.html so every browser loads the new copy together.
-const VERSION = "bjb-v19";
-const V = "19"; // keep equal to the ?v= numbers in index.html
+const VERSION = "bjb-v20";
+const V = "20"; // keep equal to the ?v= numbers in index.html
 const SHELL = ["./", "index.html", "privacy.html", "manifest.webmanifest", "assets/mark.png", "assets/logo-dark.png", "assets/logo-dark@2x.png", "assets/favicon-32.png", "assets/icon-192.png", "assets/fonts/barlow-400.woff2", "assets/fonts/barlow-600.woff2",
   ...["styles.css", "data.js", "guides.js", "photos.js", "hours.js", "canvas.js", "import.js", "live.js", "app.js", "tools.js", "motion.js", "near.js"].map(f => `${f}?v=${V}`)];
 

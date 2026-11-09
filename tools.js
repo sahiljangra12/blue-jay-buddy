@@ -315,3 +315,31 @@ document.addEventListener("submit", async e => {
   }
 }, true);
 })();
+
+/* ================= "Add to Home Screen" tip (phones only) ================= */
+(() => {
+let deferred = null;
+addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferred = e; fill(true); });
+const standalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const phone = () => matchMedia("(max-width: 820px)").matches && matchMedia("(pointer: coarse)").matches;
+const dismissed = () => { try { return localStorage.getItem("bjb-install-x") === "1"; } catch { return false; } };
+function html(){
+  const S = window.BJB_APP.svg;
+  return `<section class="tile install-tip" aria-label="Install the app"><span class="install-ic"><img src="assets/icon-192.png" alt="" width="44" height="44"></span>
+    <div><b>Put Blue Jay Buddy on your home screen</b><span>${deferred ? "Opens like an app, full screen, and works offline." : ios ? "In Safari, tap Share, then \u201cAdd to Home Screen\u201d." : "Open your browser menu, then \u201cAdd to Home screen\u201d or \u201cInstall app\u201d."}</span></div>
+    ${deferred ? `<button class="pill primary" type="button" data-install>Install</button>` : ""}
+    <button class="iconx" type="button" data-install-x aria-label="Hide this tip">${S("close")}</button></section>`;
+}
+function fill(force){
+  document.querySelectorAll("[data-install-slot]").forEach(el => {
+    if (el.dataset.filled && !force) return; el.dataset.filled = "1";
+    el.innerHTML = !standalone() && !dismissed() && phone() ? html() : "";
+  });
+}
+document.addEventListener("click", async e => {
+  if (e.target.closest("[data-install-x]")){ try { localStorage.setItem("bjb-install-x", "1"); } catch {} fill(true); }
+  if (e.target.closest("[data-install]") && deferred){ deferred.prompt(); const r = await deferred.userChoice.catch(() => ({})); deferred = null; if (r.outcome === "accepted"){ try { localStorage.setItem("bjb-install-x", "1"); } catch {} } fill(true); }
+});
+new MutationObserver(() => fill()).observe(document.getElementById("main"), { childList: true }); fill();
+})();

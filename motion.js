@@ -46,6 +46,24 @@ if (build()){
   document.addEventListener("visibilitychange", tick);
 } else if (btn) btn.hidden = true;
 
+/* ---------- swipe the hero photos on touch screens ---------- */
+const heroEl = document.querySelector(".hero");
+if (heroEl && slides.length > 1){
+  let sx = 0, sy = 0, st = 0;
+  heroEl.addEventListener("touchstart", e => { if (e.target.closest("input,button,a,textarea")) { st = 0; return; } const t = e.touches[0]; sx = t.clientX; sy = t.clientY; st = Date.now(); }, { passive: true });
+  heroEl.addEventListener("touchend", e => {
+    if (!st) return; const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5 && Date.now() - st < 800){ go(i + (dx < 0 ? 1 : -1)); tick(); }
+  }, { passive: true });
+}
+
+/* ---------- on phones a whole photo tile is the button ---------- */
+document.addEventListener("click", e => {
+  if (!matchMedia("(max-width: 820px)").matches) return;
+  const p = e.target.closest(".panel"); if (!p || e.target.closest("button,a,video")) return;
+  const b = p.querySelector(".xbtn[data-tab]"); if (b) b.click();
+});
+
 /* ---------- panels and videos ---------- */
 const seen = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ e.target.classList.add("inview"); seen.unobserve(e.target); } }), { threshold: .25 });
 const near = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ const v = e.target.querySelector("video"); if (v && v.preload !== "auto"){ v.preload = "auto"; v.load(); } near.unobserve(e.target); } }), { rootMargin: "900px 0px" });

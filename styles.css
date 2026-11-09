@@ -1348,3 +1348,101 @@ body.scrolled .gnav{background:rgba(0,0,0,.94)}
 .near-rt b{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--jay-sky)}
 .fine{font-size:12px}
 @media (max-width:640px){.near-list li{grid-template-columns:1fr auto}.near-routes{grid-column:1/-1;order:3}}
+
+/* =====================================================================
+   v16 Phones: one bottom bar for navigation, a compact hero with big
+   shortcut buttons, photo tiles instead of full-screen panels, short
+   banners, 44px tap targets and no text under 12px.
+   ===================================================================== */
+.more-sos{display:flex;align-items:center;gap:14px;padding:16px;margin:6px 0 14px;border:1.5px solid var(--alert);color:#fff;text-decoration:none}
+.more-sos svg{width:24px;height:24px;color:var(--alert)}.more-sos span{display:grid;gap:2px}.more-sos small{color:var(--muted);font-size:13px}
+.more-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.more-item{display:grid;justify-items:center;gap:8px;padding:16px 6px;border:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.more-item svg{width:24px;height:24px;color:var(--jay-sky)}
+.more-item.sos{border-color:var(--alert)}.more-item.sos svg{color:var(--alert)}
+.more-list{display:grid;margin-top:14px;border-top:1px solid var(--line)}
+.more-list>*{display:flex;align-items:center;gap:14px;min-height:52px;padding:0 4px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);font:inherit;font-size:16px;text-align:left;text-decoration:none;cursor:pointer}
+.more-list svg{width:20px;height:20px;color:var(--muted)}
+.install-tip{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:12px;margin-top:14px;padding:16px}
+.install-tip img{border-radius:10px;display:block}.install-tip div{display:grid;gap:3px}.install-tip span{color:var(--muted);font-size:14px}
+.install-tip .pill{padding:10px 16px}
+
+@media (max-width:820px){
+  /* navigation: bottom bar only */
+  .tabs{display:none}
+  .gnav-inner{height:56px}
+  .brand-logo{height:34px}
+  #navPlanBtn{padding:8px 12px;font-size:11px}
+  .bottombar{left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom,0px));padding:6px 4px;border-radius:0}
+  .bottombar button{min-height:52px;min-width:56px}
+  .bottombar span{font-size:11px;letter-spacing:.08em}
+  body{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  .foot{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+
+  /* hero: compact, everything visible */
+  .hero{min-height:0}
+  .hero-inner{padding:88px 16px 18px;gap:12px}
+  .hero-eyebrow{font-size:12px}
+  .hero-title{font-size:clamp(36px,11vw,46px);max-width:none}
+  .hero-sub{font-size:15px}
+  .hero .search{margin-top:2px}
+  .hero .search input{font-size:16px;min-height:48px}
+  .hero-buttons{gap:6px}
+  .hero-buttons .pill.link:last-child{display:none} /* virtual tour lives in More on phones */
+  .hero .pill.primary{padding:12px 18px}
+  .quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;width:auto;margin:4px 0 0;padding:0;overflow:visible}
+  .qa{flex-direction:column;justify-content:center;gap:6px;min-height:70px;padding:8px 4px;font-size:10.5px;letter-spacing:.06em;text-align:center;line-height:1.15;background:rgba(0,0,0,.35)}
+  .qa .ic{width:24px;height:24px}.qa .ic svg{width:20px;height:20px}
+  .hero-cap{bottom:6px}.hero-cap .credit{display:none}
+  .show-btn{top:66px;width:40px;height:40px}
+
+  /* main content: snug spacing */
+  #main.wrap{padding-left:12px;padding-right:12px}
+  .tile{padding:18px}
+  .dash{gap:10px;margin-top:12px}
+  .open-row{margin-top:10px;gap:6px;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;padding-bottom:2px}
+  .open-row::-webkit-scrollbar{display:none}
+  .open-pill{flex:0 0 auto;min-height:40px}
+
+  /* section pages: short photo banner, content right away */
+  .sec-banner{min-height:190px;margin-bottom:18px}
+  .sec-banner-in{padding:0 16px 18px}
+  .sec-banner h1{font-size:34px}
+  .sec-banner p{font-size:14px;margin-top:6px}
+  body[data-view="section"] #main{padding-top:0}
+
+  /* Explore: a grid of photo tiles instead of full-screen panels */
+  .subhead#h-apps{margin-top:30px}
+  .panels{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:auto;margin:14px 0 0}
+  .panel{min-height:0;aspect-ratio:4/5;border:0;cursor:pointer}
+  .panel::after{background:linear-gradient(0deg,rgba(0,0,0,.88) 0%,rgba(0,0,0,.25) 60%,rgba(0,0,0,0) 100%)}
+  .panel-in{padding:0 12px 12px;gap:4px}
+  .panel .kicker{font-size:12px;color:#fff;letter-spacing:.1em}
+  .panel h3{font-size:13px;line-height:1.25;letter-spacing:.02em;text-transform:none;font-weight:500;color:rgba(255,255,255,.82)}
+  .panel .xbtn,.panel .row{display:none}
+  .panel .credit{display:none}
+  .panel.video,.panel.sos{grid-column:1/-1;aspect-ratio:16/9}
+  .panel.video .credit{display:block;bottom:6px;right:8px;font-size:10px}
+  .panel.video .vid-btn{top:10px;right:10px}
+  .panel.sos{aspect-ratio:auto;min-height:0;padding-top:16px}
+  .panel.sos .row{display:flex;margin-top:8px}.panel.sos .xbtn{display:inline-flex;padding:12px 14px;font-size:11px}
+  .panel.sos h3{font-size:15px}
+  .applinks{gap:6px}.applink{min-height:44px}
+
+  /* tap targets and legible small text */
+  .mini,.act{min-height:40px;padding:8px 12px;font-size:12px}
+  .tick{width:32px;height:32px}
+  .card .report,.linkbtn,.foot-links a,.foot-links button{display:inline-flex;align-items:center;min-height:40px}
+  .eyebrow,.kicker{font-size:12px}
+  .route-chip{min-height:40px;font-size:12px}
+  .fb-kind span{padding:12px 14px}
+  .food-chip,.chip,.dates-list .tag{font-size:11px}
+  .ev-add{width:44px;height:44px}
+  .near-list li{padding:12px 0}
+}
+@media (max-width:370px){.qa{font-size:9.5px;letter-spacing:.04em}.hero-title{font-size:34px}}
+@media (max-width:820px){
+  .show-btn#showBtn{top:auto;bottom:10px;right:12px;width:36px;height:36px}
+  .hero-cap{right:56px;bottom:16px}
+  .sec-banner .credit{display:none}
+}
