@@ -13,11 +13,12 @@ const PICKS = {
   "penn": "Baltimore Pennsylvania Station.jpg", "bma": "Baltimore Museum of Art (1929; John Russell Pope, architect), 10 Art Museum Drive, Baltimore, MD 21218 (40400216544).jpg",
   "harbor": "Baltimore's Inner Harbor, viewed from a slope of Federal Hill Park.jpg", "hampden": "36th and Roland Ave. Hampden MD1.jpg",
   "peabody": "Peabody Institute, Mount Vernon Place, Baltimore, MD.jpg", "peabody-library": "Johns Hopkins Library.jpg",
+  "harbor-sunset": "Baltimore Sunset, 2018-09-15.jpg", "skyline-night": "Baltimore SKY Line 4 AGS.jpg",
 };
 const SHRIVER_PREFIX = "Front, Shriver Hall (1954"; const MONUMENT_PREFIX = "Johns Hopkins Monument (1935";
 const strip = s => String(s || "").replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
 async function info(title){
-  const u = "https://commons.wikimedia.org/w/api.php?" + new URLSearchParams({ action: "query", format: "json", titles: "File:" + title, prop: "imageinfo", iiprop: "url|size|extmetadata", iiurlwidth: "2400" });
+  const u = "https://commons.wikimedia.org/w/api.php?" + new URLSearchParams({ action: "query", format: "json", titles: "File:" + title, prop: "imageinfo", iiprop: "url|size|extmetadata", iiurlwidth: "3840" });
   const j = await (await fetch(u, { headers: { "User-Agent": UA } })).json();
   return Object.values(j.query.pages)[0];
 }
@@ -37,8 +38,11 @@ for (const [name, title] of Object.entries(PICKS)){
   const img = sharp(buf).rotate();
   await img.clone().resize({ width: 1600, withoutEnlargement: true }).webp({ quality: 72 }).toFile(`assets/photos/${name}-1600.webp`);
   await img.clone().resize({ width: 800, withoutEnlargement: true }).webp({ quality: 70 }).toFile(`assets/photos/${name}-800.webp`);
+  // Big screens: 2560 and 3840 (4K) wide, only when the original is that large.
+  const big = [];
+  for (const w of [2560, 3840]) if (ii.width >= w * 0.98){ await img.clone().resize({ width: w }).webp({ quality: w > 3000 ? 62 : 66 }).toFile(`assets/photos/${name}-${w}.webp`); big.push(w); }
   const meta = await sharp(`assets/photos/${name}-800.webp`).metadata();
-  credits[name] = { title, page: ii.descriptionurl, author: strip(m.Artist?.value).slice(0, 80) || "Unknown", license: strip(m.LicenseShortName?.value), licenseUrl: strip(m.LicenseUrl?.value), ratio: +(meta.width / meta.height).toFixed(3) };
+  credits[name] = { title, page: ii.descriptionurl, author: strip(m.Artist?.value).slice(0, 80) || "Unknown", license: strip(m.LicenseShortName?.value), licenseUrl: strip(m.LicenseUrl?.value), ratio: +(meta.width / meta.height).toFixed(3), big };
   console.log(name, credits[name].license);
   await new Promise(r => setTimeout(r, 400));
 }

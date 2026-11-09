@@ -21,8 +21,8 @@ jobs:
         run: node scripts/build-photos.mjs
       - if: ${{ inputs.mode == 'media' }}
         run: node scripts/fetch-media.mjs
-      - if: ${{ inputs.mode == 'video' }}
-        run: node scripts/build-video.mjs
+      - if: ${{ inputs.mode == 'video' || inputs.mode == 'final' }}
+        run: sudo apt-get install -y ffmpeg >/dev/null && node scripts/build-video.mjs
       - name: Commit
         run: |
           git config user.name "github-actions[bot]"
