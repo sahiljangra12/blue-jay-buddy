@@ -12,13 +12,21 @@ jobs:
           K=8882812681
           out=probe.txt; : > $out
           p(){ echo "=== $1" >> $out; curl -sS -m 20 -A "Mozilla/5.0" -D - -o body.tmp "$1" 2>&1 | grep -iE "^HTTP|access-control|content-type" >> $out; head -c 1500 body.tmp >> $out 2>/dev/null; echo >> $out; true; }
-          for H in jhu.transloc.com jhu.ridesystems.net jhm.transloc.com; do
-            p "https://$H/Services/JSONPRelay.svc/GetRoutesForMapWithScheduleWithEncodedLine?apiKey=$K&isDispatch=false"
-            p "https://$H/Services/JSONPRelay.svc/GetMapVehiclePoints?apiKey=$K&isPublicMap=true"
-          done
-          p "https://jhu.transloc.com/Services/JSONPRelay.svc/GetMapVehiclePoints?apiKey=$K&method=cb"
-          p "https://jhu.transloc.com/Services/JSONPRelay.svc/GetStopArrivalTimes?apiKey=$K&routeIds=&stopIds=&version=2"
-          p "https://jhu.campusgroups.com/ical/jhu/ical_jhu.ics"
-          p "https://jhu.campusgroups.com/ics_helper"
-          p "https://registrar.jhu.edu/academic-calendar/"
+          B="https://jhu.transloc.com/Services/JSONPRelay.svc"
+          curl -sS -m 20 "$B/GetRoutesForMapWithScheduleWithEncodedLine?apiKey=$K&isDispatch=false" > routes.json
+          echo "=== ROUTES" >> $out
+          jq -r '.[] | "\(.RouteID) | \(.Description) | color \(.MapLineColor) | visible \(.IsVisibleOnMap) | stops \(.Stops|length) | keys \(keys|join(","))"' routes.json >> $out
+          echo "=== FIRST ROUTE STOPS" >> $out
+          jq -r '.[0].Stops[:3][] | tostring' routes.json | cut -c1-500 >> $out
+          echo "=== ALL STOPS (route,routestopid,addressid,desc)" >> $out
+          jq -r '.[] | .RouteID as $r | .Stops[] | "\($r) | \(.RouteStopID) | \(.AddressID) | \(.Description) | \(.Latitude),\(.Longitude)"' routes.json | head -150 >> $out
+          ids=$(jq -r '[.[].RouteID]|join(",")' routes.json)
+          p "$B/GetStopArrivalTimes?apiKey=$K&routeIds=$ids&version=2"
+          p "$B/GetStopArrivalTimes?apiKey=$K&routeIds=$ids"
+          echo "=== VEHICLES" >> $out
+          curl -sS -m 20 "$B/GetMapVehiclePoints?apiKey=$K&isPublicMap=true" | jq -c '.[] | {RouteID,Name,IsOnRoute,Seconds}' >> $out
+          echo "=== CG redirect" >> $out
+          curl -sS -m 20 -A "Mozilla/5.0" -I "https://jhu.campusgroups.com/ical/jhu/ical_jhu.ics" | grep -i "^location\|^HTTP" >> $out
+          curl -sS -m 20 -A "Mozilla/5.0" "https://jhu.campusgroups.com/ics_helper" | grep -io 'https\?://[^"<> ]*ical[^"<> ]*\|/ical/[^"<> ]*' | sort -u | head -20 >> $out
+          curl -sS -m 25 -A "Mozilla/5.0" -L "https://jhu.campusgroups.com/ical/jhu/ical_jhu.ics" | head -c 800 >> $out
           cat probe.txt
