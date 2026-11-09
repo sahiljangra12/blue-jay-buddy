@@ -874,3 +874,7 @@ article.card:hover{transform:none}
 .rem-opt>div{display:flex;flex-direction:column;gap:4px}
 .rem-opt>div span{font-size:14px;color:var(--muted)}
 .rem-opt .pill{grid-column:2;justify-self:start;margin-top:6px}
+
+/* v10: verified-facts pass */
+.dates-list .tag{font-style:normal;font-size:11px;font-weight:600;letter-spacing:.01em;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);border-radius:980px;padding:1px 7px;margin-left:6px;white-space:nowrap}
+.dates-past{margin-top:10px}.dates-past summary{cursor:pointer;color:var(--muted,#5b6577);font-size:14px;padding:6px 0}

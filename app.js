@@ -153,15 +153,15 @@ function renderQuick(){
   const Q = [
     {t:"Emergency", u:"tel:4105167777", i:"phone", cls:"sos"},
     {t:"Safety escort", u:"tel:4105164600", i:"walk"},
-    {t:"Shuttles", guide:"transloc", i:"move"},
-    {t:"Food hours", u:"https://studentaffairs.jhu.edu/dining/where-to-eat/", i:"food"},
-    {t:"Canvas", u:"https://canvas.jhu.edu", i:"academics"},
-    {t:"SIS", u:"https://sis.jhu.edu", i:"services"},
-    {t:"Library", u:"https://www.library.jhu.edu", i:"book"},
-    {t:"Clubs & events", u:"https://jhu.campusgroups.com", i:"fun"},
+    {t:"Live shuttles", tab:"move", i:"move"},
+    {t:"Night Ride", guide:"bluejay", i:"clock"},
+    {t:"What's on today", tab:"fun", i:"fun"},
+    {t:"Dining hours", u:"https://studentaffairs.jhu.edu/dining/where-to-eat/", i:"food"},
+    {t:"Crisis line 24/7", u:"tel:4105169355", i:"health"},
   ];
   $("#quick").innerHTML = Q.map(q => q.guide
     ? `<button type="button" class="qa" data-guide="${q.guide}"><span class="ic">${svg(q.i)}</span>${esc(q.t)}</button>`
+    : q.tab ? `<button type="button" class="qa" data-tab="${q.tab}"><span class="ic">${svg(q.i)}</span>${esc(q.t)}</button>`
     : `<a class="qa ${q.cls||""}" href="${q.u}" ${q.u.startsWith("http")?'target="_blank" rel="noopener"':""}><span class="ic">${svg(q.i)}</span>${esc(q.t)}</a>`).join("");
 }
 
@@ -216,7 +216,7 @@ function bento(){
 /* ================= personalization ================= */
 const CHECK = {
   jhed:{label:"Set up your JHED login and MFA", g:"jhed"},
-  wifi:{label:"Connect to eduroam Wi-Fi", g:"wifi"},
+  wifi:{label:"Get on campus Wi-Fi (Hopkins network)", g:"wifi"},
   jcard:{label:"Get your J-Card and add it to your phone", g:"jcard"},
   canvas:{label:"Install Canvas and find your courses", g:"canvas"},
   ois:{label:"Finish OIS check-in (international)", g:"ois"},
@@ -345,9 +345,9 @@ function contextCard(){
   let eyebrow, title, rows;
   if (h >= 22 || h < 5){
     eyebrow = "Late night"; title = "Getting home safely.";
-    rows = [ row("move", "Free night ride", "Request a Blue Jay Shuttle in the TransLoc app.", guide("bluejay")),
+    rows = [ row("move", "Free night ride", "Request a Night Ride in TransLoc before 2 AM, or call 410-516-8700.", guide("bluejay")),
              row("walk", "Safety escort", "Security will walk or drive you. 410-516-4600.", call("Safety escort", "410-516-4600")),
-             row("book", "Brody Learning Commons", brody.text + (brody.open ? " · J-Card needed late" : ""), link(HOURS.brody.url)) ];
+             row("book", "Brody Learning Commons", brody.text, link(HOURS.brody.url)) ];
   } else if (d === 0 && h >= 16){
     const counts = [1,2,3,4,5].map(x => classes.filter(c => !c.ex && c.days.includes(x)).length);
     eyebrow = "Sunday evening"; title = "Your week ahead.";
@@ -356,13 +356,13 @@ function contextCard(){
              row("food", "Groceries and meals", "Plan cheap meals before the week gets busy.", link(itemByTitle("Cheap eats nearby")?.u || "#")) ];
   } else if (d === 6 || d === 0 || (d === 5 && h >= 15)){
     eyebrow = "Weekend"; title = "Get off campus a little.";
-    rows = [ row("fun", "Events this weekend", "Clubs, talks and free food on Hopkins Groups.", link("https://jhu.campusgroups.com")),
+    rows = [ row("fun", "Events this weekend", "Clubs, talks and free food.", `<button class="mini" type="button" data-tab="fun">See</button>`),
              row("star", "Baltimore Museum of Art", "Free, and right next to campus.", link(itemByTitle("Baltimore Museum of Art")?.u || "#")),
-             row("move", "Inner Harbor", "Free Charm City Circulator, Purple route.", guide("citybus")) ];
+             row("move", "Downtown and Federal Hill", "Free on the Charm City Circulator, Purple route.", guide("citybus")) ];
   } else if (h >= 5 && h < 11){
     eyebrow = "This morning"; title = "Before your first class.";
-    rows = [ row("move", "Shuttle times", "Live arrivals for the JHMI and campus routes in TransLoc.", guide("transloc")),
-             row("food", "Skip the coffee line", "Order ahead with Transact Mobile Ordering.", guide("mobile-order")),
+    rows = [ row("move", "Shuttle times", "Live arrivals for the JHMI and other routes.", `<button class="mini" type="button" data-tab="move">See</button>`),
+             row("food", "Order breakfast ahead", "Transact Mobile Ordering at participating spots.", guide("mobile-order")),
              row("fun", "Rec center", rec.text, link(HOURS.rec.url)) ];
   } else if (h >= 11 && h < 14){
     eyebrow = "Lunchtime"; title = "Where to eat.";
@@ -373,7 +373,7 @@ function contextCard(){
     eyebrow = h < 17 ? "This afternoon" : "This evening"; title = "Study, move, recharge.";
     rows = [ row("book", "Brody Learning Commons", brody.text, link(HOURS.brody.url)),
              row("fun", "Rec center", rec.text, link(HOURS.rec.url)),
-             row("fun", "Events today", "See what's on in Hopkins Groups.", link("https://jhu.campusgroups.com")) ];
+             row("fun", "Events today", "Clubs, talks and free food.", `<button class="mini" type="button" data-tab="fun">See</button>`) ];
   }
   return `<section class="ctx tile io" aria-label="${eyebrow}"><span class="eyebrow">${eyebrow}</span><h2 class="ctx-title">${title}</h2><ul class="ctx-list">${rows.join("")}</ul></section>`;
 }
@@ -392,7 +392,8 @@ const parseDay = s => { const [y,m,d] = s.split("-").map(Number); return new Dat
 const fmtDay = (s, opts = { weekday: "short", month: "short", day: "numeric" }) => parseDay(s).toLocaleDateString([], opts);
 function keyDates(){
   const today = ymdLocal(new Date());
-  return (D.keyDates || []).map(k => {
+  const grad = profile && (profile.level === "masters" || profile.level === "phd");
+  return (D.keyDates || []).filter(k => !(grad && k.ug)).map(k => {
     const end = k.to || k.from, days = Math.round((parseDay(k.from) - parseDay(today)) / 864e5);
     return Object.assign({}, k, { past: end < today, now: k.from <= today && end >= today, days });
   });
@@ -401,13 +402,15 @@ function keyDateHTML(){
   const k = keyDates().find(k => !k.past && (k.now || k.days <= 30));
   if (!k) return "";
   const when = k.now ? (k.to ? `now, until ${fmtDay(k.to)}` : "today") : k.days === 1 ? `tomorrow, ${fmtDay(k.from)}` : `${fmtDay(k.from)}, in ${k.days} days`;
-  return `<button class="keydate" type="button" data-dates><span class="keydate-ic">${svg("cal")}</span><span><b>${esc(k.label)}</b> ${esc(when)}</span><span class="keydate-more">All dates ${svg("chev")}</span></button>`;
+  return `<button class="keydate" type="button" data-dates><span class="keydate-ic">${svg("cal")}</span><span><b>${esc(k.label)}</b>${k.ug ? " (undergrad)" : ""} ${esc(when)}</span><span class="keydate-more">All dates ${svg("chev")}</span></button>`;
 }
+const dateRow = k => `<li class="${k.past ? "past" : k.now ? "now" : ""}"><span class="d">${esc(fmtDay(k.from, { month: "short", day: "numeric" }))}${k.to ? " – " + esc(fmtDay(k.to, { month: "short", day: "numeric" })) : ""}</span><span class="l">${esc(k.label)}${k.ug ? ' <em class="tag">Undergrad</em>' : ""}</span><span class="w">${k.past ? "Done" : k.now ? "Now" : k.days === 1 ? "Tomorrow" : `In ${k.days} days`}</span></li>`;
 function viewDates(){
   const list = keyDates();
   return `<section id="dates" class="io">${head("Semester", "Key dates.", "Homewood full-time programs. Your school or program may have its own deadlines.")}
-    <ul class="dates-list">${list.map(k => `<li class="${k.past ? "past" : k.now ? "now" : ""}"><span class="d">${esc(fmtDay(k.from, { month: "short", day: "numeric" }))}${k.to ? " – " + esc(fmtDay(k.to, { month: "short", day: "numeric" })) : ""}</span><span class="l">${esc(k.label)}</span><span class="w">${k.past ? "Done" : k.now ? "Now" : k.days === 1 ? "Tomorrow" : `In ${k.days} days`}</span></li>`).join("")}</ul>
-    <p class="note">Add/drop and withdrawal deadlines are on the <a href="${D.keyDatesSource.u}" target="_blank" rel="noopener">${esc(D.keyDatesSource.t)}</a> and in SIS.</p></section>`;
+    <ul class="dates-list">${list.filter(k => !k.past).map(dateRow).join("")}</ul>
+    ${list.some(k => k.past) ? `<details class="dates-past"><summary>Earlier this year</summary><ul class="dates-list">${list.filter(k => k.past).map(dateRow).join("")}</ul></details>` : ""}
+    <p class="note">From the <a href="${D.keyDatesSource.u}" target="_blank" rel="noopener">${esc(D.keyDatesSource.t)}</a> and the <a href="${D.keyDatesUgSource.u}" target="_blank" rel="noopener">${esc(D.keyDatesUgSource.t)}</a>. Graduate and part-time deadlines can differ; check SIS or your program coordinator.</p></section>`;
 }
 
 /* ================= live: weather, shuttles, events ================= */
@@ -506,7 +509,8 @@ function viewHome(){
   const ids = checklistIds(profile), done = ids.filter(id => doneSet.has(id)).length, left = ids.filter(id => !doneSet.has(id));
   const pct = ids.length ? Math.round(done / ids.length * 100) : 0;
   const favItems = D.items.filter(it => favs.has(it.t));
-  const quick = D.mostUsed.map(itemByTitle).filter(Boolean);
+  // First-time visitors see setup early; new students see their checklist early. Returning students get it last.
+  const planFirst = !profile || (profile.status === "new" && left.length > 0);
   const plan = profile ? (left.length ? `
     <section class="tile next-steps io" aria-label="Your checklist">
       <div class="cl-head"><div><span class="eyebrow">${profile.status === "new" ? "Your first weeks" : "Your checklist"}</span><span class="cl-count">${done} of ${ids.length} done</span></div>
@@ -529,14 +533,15 @@ function viewHome(){
   </section>
   ${openNowHTML()}
   ${keyDateHTML()}
-  ${contextCard()}
-  <section class="tile events-tile io" id="eventsCard" aria-label="Events" hidden></section>
-  ${plan}
+  ${planFirst ? plan : ""}
   ${favItems.length ? `<section class="io" aria-label="Favorites"><h2 class="subhead">Your favorites</h2><div class="chips">${favItems.map(it => `<a class="chiplink" href="${esc(it.u)}" target="_blank" rel="noopener"><span class="badge sm b-${it.cat}">${svg(it.cat)}</span>${esc(it.t)}</a>`).join("")}</div></section>` : ""}
+  ${contextCard()}
   <section class="io" aria-labelledby="h-apps">
     <h2 class="subhead" id="h-apps">Everything, one tap away</h2>
     <nav class="launcher" aria-label="Apps and sections">${launcher()}</nav>
   </section>
+  <section class="tile events-tile io" id="eventsCard" aria-label="Events" hidden></section>
+  ${planFirst ? "" : plan}
   <p class="feedback-line">Built by a student. Something missing or wrong? <a href="mailto:${D.contact}?subject=${encodeURIComponent("Blue Jay Buddy feedback")}">Tell me</a> · <a href="privacy.html">Privacy</a></p>`;
 }
 // The launcher: Hopkins apps students open daily, then every section of Blue Jay Buddy.
@@ -544,8 +549,8 @@ function launcher(){
   const ext = [["Canvas","https://canvas.jhu.edu","academics","#1D64B8"],["SIS","https://sis.jhu.edu","services","#4B4FC4"],
     ["Clubs","https://jhu.campusgroups.com","fun","#B2397E"],["Dining","https://studentaffairs.jhu.edu/dining/where-to-eat/","food","#C2384F"],
     ["Library","https://www.library.jhu.edu","book","#0B7A75"]];
-  const int = [["guides","Guides","guide","#0E8A62"],["move","Get around","move","#C27A0A"],["map","Buildings","walk","#9A3D22"],
-    ["fun","Rec center","star","#7A4BC4"],["health","Health","health","#13996B"],["services","Services","services","#3D5A80"],["safety","Safety","safety","#C62828"]];
+  const int = [["move","Get around","move","#C27A0A"],["fun","Events","star","#7A4BC4"],["map","Buildings","walk","#9A3D22"],
+    ["health","Health","health","#13996B"],["services","Services","services","#3D5A80"],["guides","Guides","guide","#0E8A62"],["safety","Safety","safety","#C62828"]];
   return ext.map(([l, u, ic, h]) => `<a class="app" href="${u}" target="_blank" rel="noopener"><span class="app-ic" style="--h:${h}">${svg(ic)}</span><span>${l}</span></a>`).join("")
     + int.map(([id, l, ic, h]) => `<button class="app" type="button" data-tab="${id}"><span class="app-ic" style="--h:${h}">${svg(ic)}</span><span>${l}</span></button>`).join("");
 }
@@ -661,7 +666,7 @@ if ("IntersectionObserver" in window && !reduced()){
   io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } }), {rootMargin:"0px 0px -8% 0px", threshold:.05});
 }
 function renderTabs(q){
-  $("#tabs").innerHTML = [["home","Today"],["academics","Classes"],["guides","Guides"], ...D.sections.filter(s => s.id !== "academics").map(s => [s.id, s.label])]
+  $("#tabs").innerHTML = [["home","Today"], ...D.sections.map(s => [s.id, s.label]), ["guides","Guides"]]
     .map(([id,l]) => `<button class="tab" role="tab" type="button" data-tab="${id}" aria-selected="${!q && id===tab}">${esc(l)}</button>`).join("");
   $$(".bottombar button").forEach(b => b.classList.toggle("on", !q && b.dataset.go === tab));
   const sel = $(`.tab[aria-selected="true"]`); if (sel) sel.scrollIntoView({block:"nearest", inline:"center"});

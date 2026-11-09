@@ -21,7 +21,7 @@ A no-login student hub for Johns Hopkins University's Homewood campus. Open it a
 
 ## Trust and quality
 
-- **Accurate information.** Every card shows when it was last checked and has a "Report a problem" link. Opening hours come only from official pages; outside the dates they cover, the app says "Check hours" instead of guessing.
+- **Accurate information.** Every phone number, address, hour and date was checked against official Johns Hopkins pages in November 2026; anything that couldn't be confirmed was removed. Every card shows when it was last checked and has a "Report a problem" link. Opening hours come only from official pages; outside the dates they cover, the app says "Check hours" instead of guessing.
 - **Monthly link check.** A GitHub Action checks every link on the 1st of each month and opens an issue titled "Broken links" if anything fails. Run it any time from the Actions tab.
 - **Privacy.** No login, no tracking cookies, no ads, no referral or affiliate links. See [privacy.html](privacy.html).
 - **Usage numbers.** One anonymous ping per browser per day, with nothing about the person stored. Totals are public at [stats.html](stats.html).
