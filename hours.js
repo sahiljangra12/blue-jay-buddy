@@ -11,10 +11,22 @@ const H = window.BJB_HOURS = {
     short: "Rec center",
     url: "https://students.jhu.edu/student-life/get-involved/oconnor-center-for-recreation-well-being/hours-of-operation/",
     checked: "2026-11",
-    note: "Weight rooms and courts close 10 minutes before the building. Pool and climbing wall keep their own hours.",
+    note: "Weight rooms and Scott courts close 15 minutes before the building. Pool hours are on the pool calendar; climbing wall hours on @jhuclimbingwall.",
     // The hours that were here came from an outdated copy of the rec site (studentaffairs.jhu.edu).
     // Leave empty until the current page (students.jhu.edu) is checked; the app then says "Check hours".
-    rules: [],
+    rules: [
+      // Fall 2026 hours from the rec center's hours page (students.jhu.edu), starting Aug 31.
+      // Sunday is left unknown: the official page currently reads "10 p.m. – 6 p.m.", a typo.
+      { from: "2026-08-31", to: "2026-11-18", week: { 0: "?", 1: ["06:00","23:00"], 2: ["06:00","23:00"], 3: ["06:00","23:00"], 4: ["06:00","23:00"], 5: ["06:00","21:00"], 6: ["08:00","21:00"] } },
+      // Thanksgiving modified hours, from the rec center homepage announcement.
+      { from: "2026-11-19", to: "2026-11-19", every: ["06:00","20:00"] },
+      { from: "2026-11-20", to: "2026-11-20", every: ["06:00","18:00"] },
+      { from: "2026-11-21", to: "2026-11-21", every: ["08:00","16:00"] },
+      { from: "2026-11-22", to: "2026-11-22", every: ["10:00","16:00"] },
+      { from: "2026-11-23", to: "2026-11-24", every: ["06:00","16:00"] },
+      { from: "2026-11-25", to: "2026-11-29", every: null },
+      { from: "2026-11-30", to: "2026-12-23", week: { 0: "?", 1: ["06:00","23:00"], 2: ["06:00","23:00"], 3: ["06:00","23:00"], 4: ["06:00","23:00"], 5: ["06:00","21:00"], 6: ["08:00","21:00"] } },
+    ],
     unknown: [],
   },
   brody: {
@@ -56,6 +68,7 @@ function dayHours(place, date){
   const r = place.rules.find(r => key >= r.from && key <= r.to);
   if (!r) return undefined;
   const v = "every" in r ? r.every : r.week[date.getDay()];
+  if (v === "?") return undefined;
   return v ? [toMin(v[0]), toMin(v[1])] : null;
 }
 

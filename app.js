@@ -51,6 +51,10 @@ const ICON = {
   trash:'<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>',
   shield:'<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="M9 12l2 2 4-4"/>',
   upload:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>',
+  download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
+  calc:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M8 15h2M12 15h2M8 18h2M12 18h4"/>',
+  map:'<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
+  calplus:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/>',
   camera:'<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   moon:'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
@@ -300,6 +304,8 @@ function classGo(c, cls = "pill light"){
 }
 
 /* ================= views ================= */
+// A simple rule of thumb: leave 15 minutes before an in-person class.
+const leaveBy = c => { const m = mins(c.start) - 15; return fmt(`${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`); };
 function nextTileHTML(){
   const n = nextClass();
   if (!n) return `<span class="eyebrow">Up next</span><span class="big">No classes this week.</span><span class="sub">Upload your SIS schedule or add classes by hand.</span>
@@ -308,6 +314,7 @@ function nextTileHTML(){
       ${n.c.mode === "online" ? `<span class="online-badge">${svg("video",'width="14" height="14"')}Online</span>` : ""}
       <span class="big">${esc(n.c.name)}</span>
       <span class="sub">${esc(n.when)} · ${esc(where(n.c))}</span>
+      ${n.startsIn !== null && n.c.mode !== "online" && n.startsIn > 15 && n.startsIn <= 120 ? `<span class="leave">${svg("walk",'width="14" height="14"')}Leave by ${esc(leaveBy(n.c))}</span>` : ""}
       ${n.startsIn !== null ? `<span class="count">Starts in ${Math.floor(n.startsIn/60) ? Math.floor(n.startsIn/60)+"h " : ""}${n.startsIn%60}m${n.startsIn <= 15 ? (n.c.mode==="online" ? " · time to log on" : " · time to walk") : ""}</span>` : ""}
       <div class="row">${n.c.ex ? `<button class="pill light" type="button" data-import>${svg("upload")}Upload my schedule</button>` : classGo(n.c)}<button class="pill glass" type="button" data-tab="academics">My week</button></div>`;
 }
@@ -353,7 +360,7 @@ function contextCard(){
     eyebrow = "Sunday evening"; title = "Your week ahead.";
     rows = [ row("cal", "Classes this week", realClasses().length ? ["Mon","Tue","Wed","Thu","Fri"].map((n, i) => `${n} ${counts[i]}`).join(" · ") : "Add your schedule to plan the week.", `<button class="mini" type="button" data-tab="academics">Plan</button>`),
              row("guide", "Due this week", hasDue() ? `${upcoming(7).length} things` : "Connect Canvas to see them here.", hasDue() ? `<button class="mini" type="button" data-tab="academics">See</button>` : `<button class="mini" type="button" data-canvas>Connect</button>`),
-             row("food", "Groceries and meals", "Plan cheap meals before the week gets busy.", link(itemByTitle("Cheap eats nearby")?.u || "#")) ];
+             row("food", "Groceries and meals", "Plan cheap meals before the week gets busy.", link("https://studentaffairs.jhu.edu/dining/where-to-eat/")) ];
   } else if (d === 6 || d === 0 || (d === 5 && h >= 15)){
     eyebrow = "Weekend"; title = "Get off campus a little.";
     rows = [ row("fun", "Events this weekend", "Clubs, talks and free food.", `<button class="mini" type="button" data-tab="fun">See</button>`),
@@ -368,7 +375,7 @@ function contextCard(){
     eyebrow = "Lunchtime"; title = "Where to eat.";
     rows = [ row("food", "Dining hours today", "Every Homewood dining spot, from the official page.", link("https://studentaffairs.jhu.edu/dining/where-to-eat/")),
              row("clock", "Order ahead", "Pick up without waiting in line.", guide("mobile-order")),
-             row("star", "Cheap eats nearby", "Affordable spots around Charles Village.", link(itemByTitle("Cheap eats nearby")?.u || "#")) ];
+             row("star", "Free groceries", "Hopkins Food Pantry: Mon 9–3, Tue 3–8.", link("https://students.jhu.edu/hopkins-food-pantry/")) ];
   } else {
     eyebrow = h < 17 ? "This afternoon" : "This evening"; title = "Study, move, recharge.";
     rows = [ row("book", "Brody Learning Commons", brody.text, link(HOURS.brody.url)),
@@ -458,26 +465,33 @@ function paintLive(){
       <ul class="ev-list">${list.map(eventRow).join("")}</ul>`;
   }
 }
+const EVCATS = [["all", "All"], ["social", "Social & arts"], ["learn", "Learn & career"], ["service", "Service"], ["active", "Sports & wellness"], ["meet", "Club meetings"]];
+const EVMAP = { social: /social|concert|performance|art|maker|dinner|gala|party|cultural|film|game/i, learn: /academic|educational|workshop|class|speaker|lecture|webinar|conference|career|info|research/i,
+  service: /community service|volunteer|fundrais|philanthrop|service/i, active: /athletic|sport|wellness|well-being|recreation|fitness/i, meet: /meeting/i };
+let evShown = [];
 function eventRow(e){
+  const idx = evShown.push(e) - 1;
   const s = new Date(e.s), now = Date.now(), on = Date.parse(e.s) <= now;
   const time = e.ad ? "All day" : on ? "Happening now" : s.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
   const day = s.toDateString() === new Date().toDateString() ? "" : s.toLocaleDateString([], { weekday: "short" }) + " ";
   return `<li><a href="${esc(e.u || "https://jhu.campusgroups.com/events")}" target="_blank" rel="noopener">
     <span class="ev-time${on ? " on" : ""}">${esc(day + time)}</span>
     <span class="ev-main"><b>${esc(e.t)}</b><span>${esc(e.h || "")}${e.p ? " · " + esc(e.p) : ""}</span></span>
-    ${e.f ? `<span class="food-chip">${svg("pizza", 'width="13" height="13"')}Food</span>` : ""}</a></li>`;
+    ${e.f ? `<span class="food-chip">${svg("pizza", 'width="13" height="13"')}Food</span>` : ""}</a>
+    <button class="ev-add" type="button" data-ev-ics="${idx}" aria-label="Add ${esc(e.t)} to my calendar">${svg("calplus")}</button></li>`;
 }
 function viewEvents(){
   if (!live.events?.events) return `<section id="events" class="io">${head("Events", "What's on this week.", "Loading events from Hopkins Groups…")}</section>`;
-  const foodOnly = store.get("bjb-food", false), now = Date.now();
-  const list = live.events.events.filter(e => Date.parse(e.e) > now && (!foodOnly || e.f));
+  const foodOnly = store.get("bjb-food", false), now = Date.now(), cat = store.get("bjb-evcat", "all");
+  const list = live.events.events.filter(e => Date.parse(e.e) > now && (!foodOnly || e.f) && (cat === "all" || EVMAP[cat]?.test(e.ty || "")));
   const byDay = {}; list.forEach(e => { const k = new Date(e.s).toDateString(); (byDay[k] ||= []).push(e); });
   const label = k => { const d = new Date(k), t = new Date(); const tm = new Date(t); tm.setDate(t.getDate() + 1);
     return d.toDateString() === t.toDateString() ? "Today" : d.toDateString() === tm.toDateString() ? "Tomorrow" : d.toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" }); };
   return `<section id="events" class="io">${head("Events", "What's on this week.", `From Hopkins Groups, updated ${new Date(live.events.built).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" })}. Tap an event to RSVP.`,
     `<button class="pill ${foodOnly ? "primary" : "secondary"}" type="button" data-foodonly aria-pressed="${foodOnly}">${svg("pizza")}Free food only</button>`)}
+    <div class="route-chips ev-cats" role="group" aria-label="Event type">${EVCATS.map(([id, l]) => `<button type="button" class="route-chip" data-evcat="${id}" aria-pressed="${id === cat}">${l}</button>`).join("")}</div>
     ${Object.keys(byDay).length ? Object.entries(byDay).map(([k, evs]) => `<h3 class="subhead day-head">${esc(label(k))} <span class="note">${evs.length} event${evs.length > 1 ? "s" : ""}</span></h3><ul class="ev-list big">${evs.slice(0, 40).map(eventRow).join("")}</ul>`).join("")
-      : `<div class="empty">${foodOnly ? "No events with food listed this week." : "No events listed this week."}</div>`}
+      : `<div class="empty">${foodOnly || cat !== "all" ? "No events match these filters this week." : "No events listed this week."}</div>`}
     <p class="note">Some events are for members only. Locations show after you sign in to Hopkins Groups.</p></section>`;
 }
 
@@ -486,8 +500,9 @@ let shuttleRoute = store.get("bjb-route", 26), shuttleTimer = null;
 function shuttleBoardHTML(){
   return `<section id="shuttles" class="tile shuttle-board">
     <div class="cl-head"><div><span class="eyebrow"><span class="dot live" aria-hidden="true"></span> Live</span><h2 class="ctx-title">Shuttles right now.</h2></div>
-    <a class="mini" href="https://jhu.transloc.com" target="_blank" rel="noopener">Map ${svg("open",'width="12" height="12"')}</a></div>
+    <button class="mini" type="button" data-shuttlemap aria-pressed="false">${svg("map",'width="13" height="13"')}Map</button></div>
     <div class="route-chips" role="tablist" aria-label="Routes">${LIVE ? LIVE.ROUTES.map(r => `<button type="button" role="tab" class="route-chip" data-route="${r.id}" aria-selected="${r.id === shuttleRoute}">${esc(r.short)}</button>`).join("") : ""}</div>
+    <div id="shuttleMap" class="shuttle-map" hidden aria-label="Map of the route and its buses"></div>
     <div id="shuttleStops" class="stops" aria-live="polite"><p class="note">Loading live arrivals…</p></div>
     <p class="note">Times come from the Hopkins shuttle tracker and update every 30 seconds.</p></section>`;
 }
@@ -547,11 +562,12 @@ function viewHome(){
 // The launcher: Hopkins apps students open daily, then every section of Blue Jay Buddy.
 function launcher(){
   const ext = [["Canvas","https://canvas.jhu.edu","academics","#1D64B8"],["SIS","https://sis.jhu.edu","services","#4B4FC4"],
-    ["Clubs","https://jhu.campusgroups.com","fun","#B2397E"],["Dining","https://studentaffairs.jhu.edu/dining/where-to-eat/","food","#C2384F"],
+["Dining","https://studentaffairs.jhu.edu/dining/where-to-eat/","food","#C2384F"],
     ["Library","https://www.library.jhu.edu","book","#0B7A75"]];
+  const tools = `<button class="app" type="button" data-tools="gpa"><span class="app-ic" style="--h:#B2397E">${svg("calc")}</span><span>Study tools</span></button>`;
   const int = [["move","Get around","move","#C27A0A"],["fun","Events","star","#7A4BC4"],["map","Buildings","walk","#9A3D22"],
     ["health","Health","health","#13996B"],["services","Services","services","#3D5A80"],["guides","Guides","guide","#0E8A62"],["safety","Safety","safety","#C62828"]];
-  return ext.map(([l, u, ic, h]) => `<a class="app" href="${u}" target="_blank" rel="noopener"><span class="app-ic" style="--h:${h}">${svg(ic)}</span><span>${l}</span></a>`).join("")
+  return ext.map(([l, u, ic, h]) => `<a class="app" href="${u}" target="_blank" rel="noopener"><span class="app-ic" style="--h:${h}">${svg(ic)}</span><span>${l}</span></a>`).join("") + tools
     + int.map(([id, l, ic, h]) => `<button class="app" type="button" data-tab="${id}"><span class="app-ic" style="--h:${h}">${svg(ic)}</span><span>${l}</span></button>`).join("");
 }
 function checkRow(id){
@@ -629,9 +645,17 @@ function viewDue(){
     ${due.feed ? `<p class="note">Gradescope deadlines show here when your instructor syncs them to Canvas. <button class="linkbtn" type="button" data-canvas>Change Canvas link</button></p>` : ""}
   </section>`;
 }
+function toolsTile(){
+  return `<section class="tile tools-tile io" aria-label="Study tools"><div><span class="eyebrow">Study tools</span><h2 class="ctx-title">Grades and focus.</h2></div>
+    <div class="tool-btns"><button class="pill secondary" type="button" data-tools="gpa">${svg("calc")}GPA</button><button class="pill secondary" type="button" data-tools="final">${svg("check")}Final grade</button><button class="pill secondary" type="button" data-tools="timer">${svg("clock")}Focus timer</button></div></section>`;
+}
+function sosTile(){
+  return `<section class="tile sos-tile io" aria-label="Emergency card"><span class="call-ic red">${svg("shield")}</span><div><b>Emergency card</b><span>Every safety and crisis number in one place, even offline. Save them to your contacts in one tap.</span></div>
+    <button class="pill danger" type="button" data-sos>Open</button></section>`;
+}
 function viewSection(id){
   const s = D.sections.find(x => x.id === id);
-  if (id === "academics") return `${viewWeek()}${viewDue()}${viewDates()}
+  if (id === "academics") return `${viewWeek()}${viewDue()}${toolsTile()}${viewDates()}
     <section class="io">${head("Links", "Classes and academics.", esc(s.intro))}<div class="grid">${D.items.filter(i => i.cat === id).map((it,i) => card(it,i)).join("")}</div></section>`;
   if (id === "fun") return `${viewEvents()}<section>${head(s.label, esc(s.label) + ".", esc(s.intro))}
     <div class="tile hours-tile"><div class="cl-head"><div><span class="eyebrow">O'Connor Rec Center</span><span class="cl-count">${esc(HOURS.status("rec").text)}</span></div></div>
@@ -640,7 +664,7 @@ function viewSection(id){
     <div class="grid" style="margin-top:20px">${D.items.filter(i => i.cat === id).map((it,i) => card(it,i)).join("")}</div></section>`;
   const body = id === "map" ? D.buildings.map((b,i) => bCard(b,i)).join("") : D.items.filter(i => i.cat === id).map((it,i) => card(it,i)).join("");
   const related = id === "map" ? [] : [...new Set(D.items.filter(i => i.cat === id && i.g).map(i => i.g))];
-  return `${id === "move" ? shuttleBoardHTML() : ""}<section>${head(s.label, esc(s.label) + ".", esc(s.intro))}<div class="grid">${body}</div></section>
+  return `${id === "move" ? shuttleBoardHTML() : ""}${id === "safety" ? sosTile() : ""}<section>${head(s.label, esc(s.label) + ".", esc(s.intro))}<div class="grid">${body}</div></section>
   ${id === "map" ? bento() : ""}
   ${related.length ? `<section class="io"><h3 class="subhead">How-to guides</h3><div class="grid">${related.map((g,i) => guideCard(g,i)).join("")}</div></section>` : ""}`;
 }
@@ -672,6 +696,7 @@ function renderTabs(q){
   const sel = $(`.tab[aria-selected="true"]`); if (sel) sel.scrollIntoView({block:"nearest", inline:"center"});
 }
 function render(quiet = false){
+  evShown = [];
   const q = $("#q").value.trim();
   renderTabs(q);
   $("#main").classList.toggle("calm", quiet);
@@ -766,7 +791,7 @@ function settingsSheet(){
       <button class="pill secondary" type="button" data-canvas>${svg("link")}${due.feed ? "Change or disconnect Canvas" : "Connect Canvas"}</button>
       <button class="pill ghost" type="button" data-reset="classes">Remove all my classes</button>
       <button class="pill ghost" type="button" data-reset="all">Reset everything</button>
-    </div>`, "small");
+    </div>${window.BJB_TOOLS ? window.BJB_TOOLS.displayHTML() : ""}`, "small");
 }
 function confirmReset(kind){
   openSheet(`<div class="call-sheet"><span class="call-ic red">${svg("trash")}</span>
@@ -1151,8 +1176,9 @@ document.addEventListener("click", e => {
   }
   if ((el = T("[data-imp-save]"))){ saveImport(); return; }
   if ((el = T("[data-dates]"))){ go("academics", false); setTimeout(() => $("#dates")?.scrollIntoView({ behavior: reduced() ? "auto" : "smooth" }), 60); return; }
+  if ((el = T("[data-evcat]"))){ store.set("bjb-evcat", el.dataset.evcat); render(true); return; }
   if ((el = T("[data-foodonly]"))){ store.set("bjb-food", !store.get("bjb-food", false)); render(true); return; }
-  if ((el = T("[data-route]"))){ shuttleRoute = +el.dataset.route; store.set("bjb-route", shuttleRoute); $$(".route-chip").forEach(b => b.setAttribute("aria-selected", b === el)); $("#shuttleStops").innerHTML = `<p class="note">Loading live arrivals…</p>`; paintShuttles(); return; }
+  if ((el = T("[data-route]"))){ shuttleRoute = +el.dataset.route; store.set("bjb-route", shuttleRoute); $$(".route-chip").forEach(b => b.setAttribute("aria-selected", b === el)); $("#shuttleStops").innerHTML = `<p class="note">Loading live arrivals…</p>`; paintShuttles(); const m = $("#shuttleMap"); if (m && !m.hidden){ m.dataset.fit = ""; window.BJB_TOOLS?.drawMap(shuttleRoute); } return; }
   if ((el = T("[data-reminders]"))){ remindersSheet(); return; }
   if ((el = T("[data-ics-due]"))){ exportDueICS(); return; }
   if ((el = T("[data-push-on]"))){ enablePush().then(() => remindersSheet()); return; }
@@ -1223,4 +1249,5 @@ if (due.feed && Date.now() - due.last > 30 * 6e4) syncCanvas(true);
 })();
 setInterval(() => { if ((tab === "home" || tab === "academics") && !$("#q").value && !sheet.open && !document.activeElement.closest?.("form")) render(true); }, 60000);
 if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+window.BJB_APP = { openSheet, closeSheet, svg, toast, route: () => shuttleRoute, events: () => evShown };
 })();

@@ -36,13 +36,14 @@ window.BJB_GUIDES = {
   "wifi": {
     title: "Get on campus Wi-Fi", group: "start", time: "3 min", who: "Everyone",
     steps: [
-      "Open Wi-Fi settings and pick <b>Hopkins</b>, the main network for students, faculty and staff.",
+      "Open Wi-Fi settings and pick <b>hopkins</b>, the main network for students, faculty and staff.",
       "Sign in with your JHED ID and JHED password.",
       "Prefer <b>eduroam</b>? The username is <i>yourJHED</i><b>@jh.edu</b> (not @jhu.edu) with your JHED password. eduroam also works at other universities.",
-      "Stuck? Call the IT help desk at 410-516-4357, any time.",
+      "Android phone won't connect? Set EAP method to <b>PEAP</b>, Phase 2 to <b>MSCHAPV2</b>, and Domain to <b>ad.jhu.edu</b>.",
+      "Still stuck? Call the IT help desk at 410-516-4357 (24/7) or walk in to Student IT at the Campus Store, Mon–Fri 10 AM–5 PM.",
     ],
-    tips: ["Mobile printing in the library needs the <b>Hopkins</b> network.", "Personal routers are not allowed in the residence halls."],
-    link: { t: "Wireless help (ResNet)", u: "https://studentaffairs.jhu.edu/computing/resnet/wireless-devices-and-printers/" },
+    tips: ["Mobile printing in the library needs the <b>hopkins</b> network.", "Echo, Apple TV, Chromecast and Google Home don't work on the hopkins network.", "Free Ethernet cables: Wolman Hall Housing Office, AMR II ResLife Office or the Tech Center in the Campus Store."],
+    link: { t: "ResNet (student IT)", u: "https://students.jhu.edu/student-life/technology-support/it-services/resnet/" },
   },
 
   "canvas": {
@@ -75,7 +76,7 @@ window.BJB_GUIDES = {
     title: "Get your J-Card and put it on your phone", group: "start", time: "5 min", who: "Everyone",
     apps: [{ name: "Transact eAccounts", ios: "https://apps.apple.com/app/id1493974212", android: PLAY("Transact eAccounts") }],
     steps: [
-      "New first-year students get their <b>J-Card</b> at move-in. Full-time graduate students upload a photo in the Graduate Student Portal. Others visit the J-Card Office. Call first to confirm its location and hours.",
+      "New first-year students get their <b>J-Card</b> at move-in. New graduate students taking classes at Homewood can pick one up at the <b>Student IT and ID Services Hub</b> in the JHU Campus Store, 2nd floor, 3330 St. Paul St. (Mon–Thu 10 AM–4:30 PM).",
       "Set up your two-step sign-in (MFA) first. See the JHED guide.",
       "From the first day of classes, add the <b>mobile credential</b> to Apple Wallet (iPhone and Apple Watch), Google Wallet or Samsung Wallet from the J-Card website.",
       "Hold your phone where you would tap the card: residence halls, dining, the bookstore and library printing. Your plastic card still works as a backup.",
@@ -271,11 +272,14 @@ window.BJB_GUIDES = {
   "rec": {
     title: "Use the rec center", group: "everyday", time: "2 min", who: "Everyone",
     steps: [
-      "Go to the Ralph S. O'Connor Center for Recreation and Well-Being and show your J-Card at the entrance.",
-      "It has weight rooms, a pool, a climbing wall, a bouldering cave, basketball and squash courts and an indoor track. Group fitness is on the rec website.",
+      "Install the <b>Johns Hopkins Rec</b> app, sign in with your JHED, and activate your membership under Membership Services → Membership Sales. You must do this before your first visit.",
+      "Membership is included in tuition for full-time KSAS and Whiting undergrads and grad students. Part-time students and other schools can buy one in the app.",
+      "Show your J-Card at the entrance, or the app's digital ID if you forgot it.",
+      "It has weight rooms, a pool, a climbing wall, a bouldering cave, basketball and squash courts and an indoor track. Book group fitness classes and squash courts in the app.",
       "Want a team? Sign up for intramurals or club sports. Volleyball, soccer and more run each semester.",
     ],
-    tips: ["Pool and climbing wall keep their own hours. Check before you go."],
+    tips: ["Fall hours: Mon–Thu 6 AM–11 PM, Fri 6 AM–9 PM, Sat 8 AM–9 PM. Closed Nov 25–29 for Thanksgiving.", "Pool times are on the pool calendar. Climbing wall times are posted on @jhuclimbingwall."],
+    apps: [{ name: "Johns Hopkins Rec", ios: "https://apps.apple.com/app/id1524524288", android: PLAY("Johns Hopkins Rec") }],
     link: { t: "Rec center hours", u: "https://students.jhu.edu/student-life/get-involved/oconnor-center-for-recreation-well-being/hours-of-operation/" },
     phones: [{ t: "Membership services", p: "410-516-5229" }],
   },

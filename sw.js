@@ -1,7 +1,9 @@
 // Offline support: the app shell is cached so the hub opens without a connection.
 // When you change a file, bump VERSION here and the ?v= numbers in index.html so every browser loads the new copy together.
-const VERSION = "bjb-v10";
-const SHELL = ["./", "index.html", "styles.css?v=8", "data.js?v=8", "guides.js?v=8", "illustrations.js?v=8", "hours.js?v=8", "canvas.js?v=8", "import.js?v=8", "live.js?v=8", "app.js?v=8", "privacy.html", "manifest.webmanifest", "assets/icon.svg", "assets/icon-192.png", "assets/fonts/bricolage.woff2"];
+const VERSION = "bjb-v11";
+const V = "11"; // keep equal to the ?v= numbers in index.html
+const SHELL = ["./", "index.html", "privacy.html", "manifest.webmanifest", "assets/icon.svg", "assets/icon-192.png", "assets/fonts/bricolage.woff2",
+  ...["styles.css", "data.js", "guides.js", "illustrations.js", "hours.js", "canvas.js", "import.js", "live.js", "app.js", "tools.js"].map(f => `${f}?v=${V}`)];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

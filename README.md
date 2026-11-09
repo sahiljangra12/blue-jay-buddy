@@ -16,6 +16,10 @@ A no-login student hub for Johns Hopkins University's Homewood campus. Open it a
 - **Live shuttle board.** Arrival times for the JHMI, Keswick, Remington, Hampden, Night Ride and other routes, from the same feed as the official Hopkins shuttle tracker. Refreshes every 30 seconds.
 - **What's on at Hopkins.** Today's and this week's events from Hopkins Groups' public calendar, with a "Free food" filter. Refreshed every 2 hours by a GitHub Action (`scripts/build-events.mjs` → `events.json`).
 - **Deadline reminders.** Add your deadlines to your phone's calendar with alerts 24 hours and 2 hours before (works everywhere), or turn on push notifications (needs the Netlify functions).
+- **Study tools.** GPA calculator on the Registrar's scale, a "what do I need on the final" calculator, and a focus timer.
+- **Emergency card.** Every verified safety and crisis number in one place, works offline, and saves to your contacts in one tap.
+- **Live shuttle map**, event filters by type with add-to-calendar, and a "leave by" time for your next in-person class.
+- **Display and backup.** Larger text, high contrast, and a backup file to move your setup to a new phone.
 - **Calls always ask first**, so nobody dials the emergency line by accident.
 - Installable on phones, works offline, light and dark mode, animated campus illustrations.
 
