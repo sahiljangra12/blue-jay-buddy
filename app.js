@@ -602,7 +602,7 @@ function launcher(){
       <div class="panel-in"><span class="kicker">${esc(k)}</span><h3>${esc(h)}</h3><button class="xbtn" type="button" data-tab="${id}">Explore</button></div>
       <span class="credit">${credit(SEC_PIC[id][0])}</span></section>`).join("")}
       <section class="panel video" aria-label="Baltimore">
-        <video class="panel-video" muted loop playsinline preload="none" poster="assets/video/baltimore-aerial.jpg" aria-hidden="true">
+        <video class="panel-video" muted loop playsinline preload="metadata" poster="assets/video/baltimore-aerial.jpg" aria-hidden="true">
           <source src="assets/video/baltimore-aerial.mp4" type="video/mp4"></video>
         <div class="panel-in"><span class="kicker">Baltimore</span><h3>Baltimore, right outside the gates</h3>
         <div class="row"><button class="xbtn" type="button" data-tab="fun">Things to do</button><button class="xbtn" type="button" data-guide="citybus">Free city buses</button></div></div>
@@ -767,7 +767,8 @@ function render(quiet = false){
 function go(t, scroll = true){
   tab = t; $("#q").value = "";
   history.replaceState(null, "", t === "home" ? location.pathname : "#" + t);
-  render();
+  // Smooth cross-fade between screens where the browser supports it.
+  if (document.startViewTransition && !reduced()) document.startViewTransition(() => render()); else render();
   if (scroll) t === "home" ? $(".tabs").scrollIntoView({behavior: reduced() ? "auto" : "smooth"}) : window.scrollTo({ top: 0 });
 }
 

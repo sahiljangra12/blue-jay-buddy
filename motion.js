@@ -15,17 +15,23 @@ function label(k){ document.getElementById("heroPlace").textContent = PLACES[k] 
 function build(){
   const H = window.BJB_HERO; if (!H || !show || !srcset) return false;
   const first = show.querySelector("img");
-  first.srcset = srcset(H.first); first.src = `assets/photos/${H.first}-1600.webp`; first.alt = PLACES[H.first] || ""; first.dataset.key = H.first;
+  first.srcset = srcset(H.first).split(", ").filter(s => !/ 3840w$/.test(s)).join(", "); first.src = `assets/photos/${H.first}-1600.webp`; first.alt = PLACES[H.first] || ""; first.dataset.key = H.first;
   slides = [first, ...H.slides.slice(1).map(k => { const im = document.createElement("img"); im.className = "slide"; im.alt = PLACES[k] || ""; im.dataset.key = k; im.decoding = "async"; im.sizes = "100vw"; show.insertBefore(im, show.querySelector("figcaption")); return im; })];
   label(H.first);
   return true;
 }
-function load(im){ if (!im.src){ im.srcset = srcset(im.dataset.key); im.src = `assets/photos/${im.dataset.key}-1600.webp`; } }
+// Animated slides use at most the 2560-wide photo: 4K files are too heavy to animate smoothly.
+const heroSet = k => srcset(k).split(", ").filter(s => !/ 3840w$/.test(s)).join(", ");
+function load(im){ if (!im.src){ im.srcset = heroSet(im.dataset.key); im.src = `assets/photos/${im.dataset.key}-1600.webp`; } return im.decode ? im.decode().catch(() => {}) : Promise.resolve(); }
 function go(n){
   const cur = slides[i]; i = (n + slides.length) % slides.length; const nx = slides[i];
-  load(nx); load(slides[(i + 1) % slides.length]);
-  const swap = () => { nx.classList.remove("drift-a", "drift-b"); void nx.offsetWidth; nx.classList.add(i % 2 ? "drift-b" : "drift-a", "on"); cur.classList.remove("on"); label(nx.dataset.key); };
-  nx.complete && nx.naturalWidth ? swap() : nx.addEventListener("load", swap, { once: true });
+  const swap = () => requestAnimationFrame(() => {
+    nx.classList.remove("drift-a", "drift-b", "next"); void nx.offsetWidth;
+    nx.classList.add(i % 2 ? "drift-b" : "drift-a", "on"); cur.classList.remove("on");
+    label(nx.dataset.key);
+    const after = slides[(i + 1) % slides.length]; after.classList.add("next"); load(after); // decode the following slide ahead of time
+  });
+  load(nx).then(swap);
 }
 function tick(){ clearInterval(timer); if (!paused && visible && !document.hidden) timer = setInterval(() => go(i + 1), 7000); }
 function setPaused(p){ paused = p; btn.setAttribute("aria-pressed", p); btn.setAttribute("aria-label", p ? "Play the slideshow" : "Pause the slideshow");
@@ -42,10 +48,11 @@ if (build()){
 
 /* ---------- panels and videos ---------- */
 const seen = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ e.target.classList.add("inview"); seen.unobserve(e.target); } }), { threshold: .25 });
+const near = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ const v = e.target.querySelector("video"); if (v && v.preload !== "auto"){ v.preload = "auto"; v.load(); } near.unobserve(e.target); } }), { rootMargin: "900px 0px" });
 const vids = new IntersectionObserver(es => es.forEach(e => {
   const v = e.target.querySelector("video"); if (!v || e.target.dataset.paused === "1" || reduced) return;
   e.isIntersecting ? v.play().catch(() => {}) : v.pause();
-}), { threshold: .35 });
+}), { threshold: .15 });
 let vcred = null;
 fetch("assets/video/videos.json").then(r => r.ok ? r.json() : {}).then(j => { vcred = j; scan(); }).catch(() => {});
 function scan(){
@@ -53,7 +60,7 @@ function scan(){
   document.querySelectorAll(".panel.video").forEach(p => {
     const c = p.querySelector("#vidCredit"); const k = "baltimore-aerial";
     if (c && vcred && vcred[k] && !c.innerHTML) c.innerHTML = `<a href="${vcred[k].page}" target="_blank" rel="noopener">Video: ${vcred[k].author}, ${vcred[k].license}</a>`;
-    if (p.dataset.v) return; p.dataset.v = "1"; vids.observe(p);
+    if (p.dataset.v) return; p.dataset.v = "1"; vids.observe(p); near.observe(p);
     const b = p.querySelector(".vid-btn"), v = p.querySelector("video");
     if (reduced){ b.setAttribute("aria-pressed", "true"); p.dataset.paused = "1"; }
     b.addEventListener("click", () => { const now = p.dataset.paused !== "1"; p.dataset.paused = now ? "1" : ""; b.setAttribute("aria-pressed", now); b.setAttribute("aria-label", now ? "Play the video" : "Pause the video"); now ? v.pause() : v.play().catch(() => {}); });

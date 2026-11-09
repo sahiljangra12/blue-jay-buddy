@@ -1283,3 +1283,32 @@ body[data-view="section"] .sec-banner{margin-top:0}
   .dot.live,.open-pill.open .dot{animation:none}
 }
 .hero-inner{pointer-events:none}.hero-inner>*{pointer-events:auto}
+
+/* v15: smoothness. No live blur behind moving content, lighter animations, GPU-friendly transforms. */
+.foot-brand img.foot-logo{width:220px;height:auto;border-radius:0}
+.gnav,body.scrolled .gnav,.tabs,.bottombar,.hero .search,.qa,.sheet::backdrop{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+body.scrolled .gnav{background:rgba(0,0,0,.94)}
+.tabs{background:rgba(0,0,0,.96)}
+.bottombar{background:rgba(6,8,12,.97)}
+.hero .search{background:rgba(0,0,0,.62)!important}
+.sheet::backdrop{background:rgba(0,0,0,.7)}
+/* hero: gentler drift, only the visible slides are layered */
+.hero-photo .slide{will-change:auto;transform:translate3d(0,0,0);backface-visibility:hidden;transition:opacity 1.2s ease-in-out}
+.hero-photo .slide.on,.hero-photo .slide.next{will-change:opacity,transform}
+@keyframes driftA{from{transform:scale(1.08) translate3d(-1%,.6%,0)}to{transform:scale(1.01) translate3d(.6%,-.6%,0)}}
+@keyframes driftB{from{transform:scale(1.08) translate3d(1%,-.6%,0)}to{transform:scale(1.01) translate3d(-.6%,.6%,0)}}
+/* panels: a light settle on the photo only; the video is never transformed while playing */
+.panel img,.sec-banner img{transform:scale(1.05) translateZ(0);transition:transform 1.8s cubic-bezier(.2,.7,.2,1)}
+.panel.inview img,.sec-banner.inview img{transform:translateZ(0)}
+.panel video,.panel.inview video{transform:none!important;transition:none!important}
+.panel .panel-in>*{transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
+/* smooth screen changes (View Transitions) */
+::view-transition-old(root){animation:vtOut .22s ease-in both}
+::view-transition-new(root){animation:vtIn .32s cubic-bezier(.2,.7,.2,1) both}
+@keyframes vtOut{to{opacity:0}}
+@keyframes vtIn{from{opacity:0;transform:translateY(10px)}}
+#main{view-transition-name:main}
+::view-transition-old(main){animation:vtOut .2s ease-in both}
+::view-transition-new(main){animation:vtIn .34s cubic-bezier(.2,.7,.2,1) both}
+@media (prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root),::view-transition-old(main),::view-transition-new(main){animation:none}}
+@media (max-width:560px){.foot-brand{flex-direction:column;align-items:flex-start;gap:12px}}
