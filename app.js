@@ -4,7 +4,7 @@ const D = window.BJB, G = window.BJB_GUIDES || {}, MAPS = D.maps;
 // If the illustrations file has not loaded (old cached copy), fall back to plain colour panels instead of failing.
 const ART = window.BJB_ART || { scene: () => "", building: () => "", watch: () => {} };
 const HOURS = window.BJB_HOURS || { status: () => ({ known: false, text: "Check hours" }), week: () => [] };
-const CANVAS = window.BJB_CANVAS, IMPORT = window.BJB_IMPORT;
+const CANVAS = window.BJB_CANVAS, IMPORT = window.BJB_IMPORT, LIVE = window.BJB_LIVE;
 D.places = D.places || []; D.contact = D.contact || "sfnu1@jh.edu"; D.reviewed = D.reviewed || "";
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -58,6 +58,9 @@ const ICON = {
   link:'<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
   refresh:'<path d="M21 12a9 9 0 1 1-2.6-6.4L21 8"/><path d="M21 3v5h-5"/>',
   chev:'<path d="m9 18 6-6-6-6"/>',
+  rain:'<path d="M20 16.6A5 5 0 0 0 18 7h-1.3A8 8 0 1 0 4 15.3"/><path d="M8 19v2M8 13v2M16 19v2M16 13v2M12 21v2M12 15v2"/>',
+  bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
+  pizza:'<path d="M12 2 2 21h20z"/><circle cx="10" cy="14" r="1"/><circle cx="14" cy="16" r="1"/><circle cx="12" cy="10" r="1"/>',
 };
 const svg = (name, attrs = "") => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${attrs}>${ICON[name]}</svg>`;
 const telOf = p => "tel:" + p.replace(/\D/g, "");
@@ -79,7 +82,7 @@ const where = c => c.mode === "online" ? "Online" : `${c.bldg}${c.room ? ", room
 
 /* Deadlines: Canvas feed items + ones the student adds by hand. Stored only in this browser. */
 let due = Object.assign({ feed: "", items: [], manual: [], done: [], last: 0, error: "" }, store.get("bjb-due", {}));
-const saveDue = () => store.set("bjb-due", due);
+const saveDue = () => { store.set("bjb-due", due); if (typeof syncPushSoon === "function") syncPushSoon(); };
 const hasDue = () => !!(due.feed || due.items.length || due.manual.length);
 function deadlines(){
   const done = new Set(due.done);
@@ -379,8 +382,124 @@ function openNowHTML(){
   const pill = (id) => { const st = HOURS.status(id); const p = HOURS[id];
     return `<a class="open-pill ${st.known ? (st.open ? (st.closingSoon ? "soon" : "open") : "closed") : "unknown"}" href="${p.url}" target="_blank" rel="noopener">
       <span class="dot" aria-hidden="true"></span><b>${esc(p.short)}</b><span>${esc(st.text)}</span></a>`; };
-  return `<div class="open-row" aria-label="Open now">${pill("rec")}${pill("brody")}
+  return `<div class="open-row" aria-label="Right now"><span class="open-pill wx" id="wxPill" hidden></span><a class="open-pill bus" id="jhmiPill" href="#move" data-tab="move" hidden></a>${pill("rec")}${pill("brody")}
     <a class="open-pill unknown" href="https://studentaffairs.jhu.edu/dining/where-to-eat/" target="_blank" rel="noopener"><span class="dot" aria-hidden="true"></span><b>Dining</b><span>Today's hours</span></a></div>`;
+}
+
+/* ================= key dates ================= */
+const ymdLocal = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const parseDay = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+const fmtDay = (s, opts = { weekday: "short", month: "short", day: "numeric" }) => parseDay(s).toLocaleDateString([], opts);
+function keyDates(){
+  const today = ymdLocal(new Date());
+  return (D.keyDates || []).map(k => {
+    const end = k.to || k.from, days = Math.round((parseDay(k.from) - parseDay(today)) / 864e5);
+    return Object.assign({}, k, { past: end < today, now: k.from <= today && end >= today, days });
+  });
+}
+function keyDateHTML(){
+  const k = keyDates().find(k => !k.past && (k.now || k.days <= 30));
+  if (!k) return "";
+  const when = k.now ? (k.to ? `now, until ${fmtDay(k.to)}` : "today") : k.days === 1 ? `tomorrow, ${fmtDay(k.from)}` : `${fmtDay(k.from)}, in ${k.days} days`;
+  return `<button class="keydate" type="button" data-dates><span class="keydate-ic">${svg("cal")}</span><span><b>${esc(k.label)}</b> ${esc(when)}</span><span class="keydate-more">All dates ${svg("chev")}</span></button>`;
+}
+function viewDates(){
+  const list = keyDates();
+  return `<section id="dates" class="io">${head("Semester", "Key dates.", "Homewood full-time programs. Your school or program may have its own deadlines.")}
+    <ul class="dates-list">${list.map(k => `<li class="${k.past ? "past" : k.now ? "now" : ""}"><span class="d">${esc(fmtDay(k.from, { month: "short", day: "numeric" }))}${k.to ? " – " + esc(fmtDay(k.to, { month: "short", day: "numeric" })) : ""}</span><span class="l">${esc(k.label)}</span><span class="w">${k.past ? "Done" : k.now ? "Now" : k.days === 1 ? "Tomorrow" : `In ${k.days} days`}</span></li>`).join("")}</ul>
+    <p class="note">Add/drop and withdrawal deadlines are on the <a href="${D.keyDatesSource.u}" target="_blank" rel="noopener">${esc(D.keyDatesSource.t)}</a> and in SIS.</p></section>`;
+}
+
+/* ================= live: weather, shuttles, events ================= */
+const live = { wx: null, jhmi: null, events: null, health: null };
+async function refreshLive(which = ["wx", "jhmi", "events"]){
+  if (!LIVE) return;
+  const jobs = [];
+  if (which.includes("wx")) jobs.push(LIVE.weather().then(w => live.wx = w).catch(() => {}));
+  if (which.includes("jhmi")) jobs.push(LIVE.jhmiNext().then(j => live.jhmi = j).catch(() => { live.jhmi = live.jhmi || null; }));
+  if (which.includes("events")) jobs.push(LIVE.events().then(e => live.events = e).catch(() => {}));
+  const hadEvents = !!live.events;
+  await Promise.all(jobs);
+  if (!hadEvents && live.events && tab === "fun" && !$("#q").value) render(true);
+  paintLive();
+}
+function paintLive(){
+  const wxPill = $("#wxPill"), jp = $("#jhmiPill"), note = $("#wxNote");
+  if (wxPill && live.wx){
+    const nextRain = live.wx.hours.find(h => h.t > new Date() && h.t < new Date(Date.now() + 12 * 36e5) && h.rain >= 50);
+    wxPill.hidden = false;
+    wxPill.innerHTML = `<span class="wx-ic" aria-hidden="true">${svg(nextRain ? "rain" : "sun")}</span><b>${live.wx.temp}°F</b><span>${esc(live.wx.text)}${nextRain ? ` · rain ${nextRain.t.toLocaleTimeString([], { hour: "numeric" })}` : ""}</span>`;
+  }
+  if (note && live.wx){
+    const n = nextClass(), now = new Date();
+    let adv = null;
+    if (n && !n.c.ex && n.c.mode !== "online" && (n.when.startsWith("Today") || n.when.startsWith("Happening"))){
+      const [sh, sm] = n.c.start.split(":").map(Number), [eh, em] = n.c.end.split(":").map(Number);
+      const a = new Date(now); a.setHours(sh, sm, 0, 0); const b = new Date(now); b.setHours(eh, em, 0, 0);
+      adv = LIVE.advice(live.wx, a, b, n.c.name);
+    } else adv = LIVE.advice(live.wx, now, new Date(now.getTime() + 6 * 36e5), "");
+    note.hidden = !adv; if (adv) note.innerHTML = `${svg(adv.kind === "rain" ? "rain" : "sun", 'width="16" height="16"')}${esc(adv.text)}`;
+  }
+  if (jp){
+    if (live.jhmi){ jp.hidden = false; jp.innerHTML = `<span class="dot live" aria-hidden="true"></span><b>JHMI</b><span>${live.jhmi.arriving || live.jhmi.mins === 0 ? "arriving" : `${live.jhmi.mins} min`} at ${esc(live.jhmi.stop)}</span>`; }
+    else jp.hidden = true;
+  }
+  const ec = $("#eventsCard");
+  if (ec && live.events?.events){
+    const now = Date.now(), endToday = new Date(); endToday.setHours(23, 59, 59);
+    let list = live.events.events.filter(e => Date.parse(e.e) > now && Date.parse(e.s) <= endToday), label = "Today at Hopkins";
+    if (list.length < 2){ const t2 = new Date(endToday.getTime() + 864e5); list = live.events.events.filter(e => Date.parse(e.e) > now && Date.parse(e.s) <= t2); label = "Today and tomorrow"; }
+    list = [...list.filter(e => e.f), ...list.filter(e => !e.f)].slice(0, 4).sort((a, b) => a.s.localeCompare(b.s));
+    ec.hidden = !list.length;
+    ec.innerHTML = `<div class="cl-head"><div><span class="eyebrow">${label}</span><h2 class="ctx-title">What's on.</h2></div><button class="mini" type="button" data-tab="fun">All events</button></div>
+      <ul class="ev-list">${list.map(eventRow).join("")}</ul>`;
+  }
+}
+function eventRow(e){
+  const s = new Date(e.s), now = Date.now(), on = Date.parse(e.s) <= now;
+  const time = e.ad ? "All day" : on ? "Happening now" : s.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const day = s.toDateString() === new Date().toDateString() ? "" : s.toLocaleDateString([], { weekday: "short" }) + " ";
+  return `<li><a href="${esc(e.u || "https://jhu.campusgroups.com/events")}" target="_blank" rel="noopener">
+    <span class="ev-time${on ? " on" : ""}">${esc(day + time)}</span>
+    <span class="ev-main"><b>${esc(e.t)}</b><span>${esc(e.h || "")}${e.p ? " · " + esc(e.p) : ""}</span></span>
+    ${e.f ? `<span class="food-chip">${svg("pizza", 'width="13" height="13"')}Food</span>` : ""}</a></li>`;
+}
+function viewEvents(){
+  if (!live.events?.events) return `<section id="events" class="io">${head("Events", "What's on this week.", "Loading events from Hopkins Groups…")}</section>`;
+  const foodOnly = store.get("bjb-food", false), now = Date.now();
+  const list = live.events.events.filter(e => Date.parse(e.e) > now && (!foodOnly || e.f));
+  const byDay = {}; list.forEach(e => { const k = new Date(e.s).toDateString(); (byDay[k] ||= []).push(e); });
+  const label = k => { const d = new Date(k), t = new Date(); const tm = new Date(t); tm.setDate(t.getDate() + 1);
+    return d.toDateString() === t.toDateString() ? "Today" : d.toDateString() === tm.toDateString() ? "Tomorrow" : d.toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" }); };
+  return `<section id="events" class="io">${head("Events", "What's on this week.", `From Hopkins Groups, updated ${new Date(live.events.built).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" })}. Tap an event to RSVP.`,
+    `<button class="pill ${foodOnly ? "primary" : "secondary"}" type="button" data-foodonly aria-pressed="${foodOnly}">${svg("pizza")}Free food only</button>`)}
+    ${Object.keys(byDay).length ? Object.entries(byDay).map(([k, evs]) => `<h3 class="subhead day-head">${esc(label(k))} <span class="note">${evs.length} event${evs.length > 1 ? "s" : ""}</span></h3><ul class="ev-list big">${evs.slice(0, 40).map(eventRow).join("")}</ul>`).join("")
+      : `<div class="empty">${foodOnly ? "No events with food listed this week." : "No events listed this week."}</div>`}
+    <p class="note">Some events are for members only. Locations show after you sign in to Hopkins Groups.</p></section>`;
+}
+
+/* Live shuttle board (Get around tab) */
+let shuttleRoute = store.get("bjb-route", 26), shuttleTimer = null;
+function shuttleBoardHTML(){
+  return `<section id="shuttles" class="tile shuttle-board">
+    <div class="cl-head"><div><span class="eyebrow"><span class="dot live" aria-hidden="true"></span> Live</span><h2 class="ctx-title">Shuttles right now.</h2></div>
+    <a class="mini" href="https://jhu.transloc.com" target="_blank" rel="noopener">Map ${svg("open",'width="12" height="12"')}</a></div>
+    <div class="route-chips" role="tablist" aria-label="Routes">${LIVE ? LIVE.ROUTES.map(r => `<button type="button" role="tab" class="route-chip" data-route="${r.id}" aria-selected="${r.id === shuttleRoute}">${esc(r.short)}</button>`).join("") : ""}</div>
+    <div id="shuttleStops" class="stops" aria-live="polite"><p class="note">Loading live arrivals…</p></div>
+    <p class="note">Times come from the Hopkins shuttle tracker and update every 30 seconds.</p></section>`;
+}
+async function paintShuttles(){
+  const box = $("#shuttleStops"); if (!box || !LIVE) return;
+  try {
+    const [list, counts] = await Promise.all([LIVE.arrivals([shuttleRoute]), LIVE.vehicles().catch(() => ({}))]);
+    const r = LIVE.ROUTES.find(x => x.id === shuttleRoute), n = counts[shuttleRoute] || 0;
+    const stops = list.filter(s => s.route === shuttleRoute);
+    box.innerHTML = `<p class="route-name"><b>${esc(r.name)}</b><span class="${n ? "ok" : ""}">${n ? `${n} bus${n > 1 ? "es" : ""} running` : "No buses running right now"}</span></p>
+      ${stops.length ? `<ol class="stop-list">${stops.map(s => `<li><span class="stop">${esc(s.stop)}</span><span class="times">${s.next.length ? s.next.map((t, i) => `<span class="${i ? "later" : "first"}">${t.arriving || t.mins === 0 ? "Now" : t.mins + " min"}</span>`).join("") : `<span class="later">–</span>`}</span></li>`).join("")}</ol>`
+        : `<p class="note">No arrival times for this route right now. Check the schedule on the shuttle page.</p>`}`;
+  } catch {
+    box.innerHTML = `<p class="note">Couldn't load live times. Open the <a href="https://jhu.transloc.com" target="_blank" rel="noopener">shuttle tracker</a> instead.</p>`;
+  }
 }
 
 function viewHome(){
@@ -405,11 +524,13 @@ function viewHome(){
 
   return `
   <section class="dash" aria-label="Today">
-    <div class="tile next reveal"><img class="deco" src="assets/icon.svg" alt="">${nextTileHTML()}</div>
+    <div class="tile next reveal"><img class="deco" src="assets/icon.svg" alt="">${nextTileHTML()}<p class="wx-note" id="wxNote" hidden></p></div>
     ${dueTileHTML()}
   </section>
   ${openNowHTML()}
+  ${keyDateHTML()}
   ${contextCard()}
+  <section class="tile events-tile io" id="eventsCard" aria-label="Events" hidden></section>
   ${plan}
   ${favItems.length ? `<section class="io" aria-label="Favorites"><h2 class="subhead">Your favorites</h2><div class="chips">${favItems.map(it => `<a class="chiplink" href="${esc(it.u)}" target="_blank" rel="noopener"><span class="badge sm b-${it.cat}">${svg(it.cat)}</span>${esc(it.t)}</a>`).join("")}</div></section>` : ""}
   <section class="io" aria-labelledby="h-apps">
@@ -496,7 +617,7 @@ function viewDue(){
   const synced = due.last ? `Updated ${new Date(due.last).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" })}` : "";
   return `<section id="due" class="io">
     ${head("Deadlines", "Due.", due.feed || due.items.length ? `From your Canvas calendar${synced ? " · " + synced : ""}. Tick things off as you finish them.` : "Connect Canvas once and every assignment shows up here. You can also add your own.",
-      `<div class="week-actions">${due.feed ? `<button class="pill secondary" type="button" data-sync>${svg("refresh")}Refresh</button>` : `<button class="pill primary" type="button" data-canvas>${svg("link")}Connect Canvas</button>`}<button class="pill secondary" type="button" data-adddue>${svg("plus")}Add a deadline</button></div>`)}
+      `<div class="week-actions">${due.feed ? `<button class="pill secondary" type="button" data-sync>${svg("refresh")}Refresh</button>` : `<button class="pill primary" type="button" data-canvas>${svg("link")}Connect Canvas</button>`}<button class="pill secondary" type="button" data-adddue>${svg("plus")}Add a deadline</button><button class="pill secondary" type="button" data-reminders>${svg("bell")}Reminders</button></div>`)}
     ${due.error ? `<p class="warn">${esc(due.error)} <button class="linkbtn" type="button" data-canvas>Fix the link</button></p>` : ""}
     ${open.length ? `<ul class="due-list big">${open.map(dueItem).join("")}</ul>` : `<div class="empty">${hasDue() ? "Nothing coming up. Enjoy it." : "No deadlines yet."}</div>`}
     ${finished.length ? `<details class="done-list"><summary>Recently done (${finished.length})</summary><ul class="due-list">${finished.map(dueItem).join("")}</ul></details>` : ""}
@@ -505,16 +626,16 @@ function viewDue(){
 }
 function viewSection(id){
   const s = D.sections.find(x => x.id === id);
-  if (id === "academics") return `${viewWeek()}${viewDue()}
+  if (id === "academics") return `${viewWeek()}${viewDue()}${viewDates()}
     <section class="io">${head("Links", "Classes and academics.", esc(s.intro))}<div class="grid">${D.items.filter(i => i.cat === id).map((it,i) => card(it,i)).join("")}</div></section>`;
-  if (id === "fun") return `<section>${head(s.label, esc(s.label) + ".", esc(s.intro))}
+  if (id === "fun") return `${viewEvents()}<section>${head(s.label, esc(s.label) + ".", esc(s.intro))}
     <div class="tile hours-tile"><div class="cl-head"><div><span class="eyebrow">O'Connor Rec Center</span><span class="cl-count">${esc(HOURS.status("rec").text)}</span></div></div>
     <table class="hours">${HOURS.week("rec").map(r => `<tr class="${r.today ? "today" : ""}"><td>${DAY[r.day]}${r.today ? " · today" : ""}</td><td>${esc(r.text)}</td></tr>`).join("")}</table>
     <p class="note">${esc(HOURS.rec.note)} Hours checked ${esc(monthLabel(HOURS.rec.checked))}. <a href="${HOURS.rec.url}" target="_blank" rel="noopener">Official hours ›</a></p></div>
     <div class="grid" style="margin-top:20px">${D.items.filter(i => i.cat === id).map((it,i) => card(it,i)).join("")}</div></section>`;
   const body = id === "map" ? D.buildings.map((b,i) => bCard(b,i)).join("") : D.items.filter(i => i.cat === id).map((it,i) => card(it,i)).join("");
   const related = id === "map" ? [] : [...new Set(D.items.filter(i => i.cat === id && i.g).map(i => i.g))];
-  return `<section>${head(s.label, esc(s.label) + ".", esc(s.intro))}<div class="grid">${body}</div></section>
+  return `${id === "move" ? shuttleBoardHTML() : ""}<section>${head(s.label, esc(s.label) + ".", esc(s.intro))}<div class="grid">${body}</div></section>
   ${id === "map" ? bento() : ""}
   ${related.length ? `<section class="io"><h3 class="subhead">How-to guides</h3><div class="grid">${related.map((g,i) => guideCard(g,i)).join("")}</div></section>` : ""}`;
 }
@@ -559,6 +680,9 @@ function render(quiet = false){
   }
   $$("#main .io").forEach(el => { if (quiet || !io) el.classList.add("in"); else io.observe(el); });
   ART.watch($("#main"));
+  paintLive();
+  clearInterval(shuttleTimer);
+  if (tab === "move" && !q){ paintShuttles(); shuttleTimer = setInterval(() => { if (!document.hidden) paintShuttles(); }, 30000); }
   setSky(); heroCta();
 }
 function go(t, scroll = true){
@@ -839,6 +963,78 @@ document.addEventListener("click", e => {
   if (e.target.closest("[data-disconnect]")){ Object.assign(due, { feed: "", items: [], last: 0, error: "" }); saveDue(); closeSheet(); toast("Canvas disconnected"); render(true); }
 });
 
+/* ================= reminders ================= */
+// 1) Calendar reminders: a .ics file with alerts 24 hours and 2 hours before each deadline. Works on any phone today.
+// 2) Phone notifications: Web Push through Blue Jay Buddy's Netlify helper, when it's available.
+function exportDueICS(){
+  const list = upcoming(60).filter(d => new Date(d.due) > Date.now());
+  if (!list.length){ toast("No upcoming deadlines to add"); return; }
+  const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+/, ""), z = iso => new Date(iso).toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
+  const clean = s => String(s || "").replace(/[,;\\]/g, " ").replace(/\n/g, " ");
+  const L = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Blue Jay Buddy//Deadlines//EN","CALSCALE:GREGORIAN","X-WR-CALNAME:Blue Jay Buddy deadlines"];
+  list.forEach(d => {
+    const end = new Date(d.due), start = new Date(end.getTime() - 30 * 6e4);
+    L.push("BEGIN:VEVENT", `UID:bjb-due-${clean(d.uid).replace(/\s/g, "")}@bluejaybuddy`, `DTSTAMP:${stamp}`, `DTSTART:${z(start)}`, `DTEND:${z(end)}`,
+      `SUMMARY:Due: ${clean(d.title)}`, d.course ? `DESCRIPTION:${clean(d.course)}` : "", d.url ? `URL:${d.url}` : "",
+      "BEGIN:VALARM","ACTION:DISPLAY",`DESCRIPTION:Due tomorrow: ${clean(d.title)}`,"TRIGGER;RELATED=END:-P1D","END:VALARM",
+      "BEGIN:VALARM","ACTION:DISPLAY",`DESCRIPTION:Due in 2 hours: ${clean(d.title)}`,"TRIGGER;RELATED=END:-PT2H","END:VALARM", "END:VEVENT");
+  });
+  L.push("END:VCALENDAR");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([L.filter(Boolean).join("\r\n")], { type: "text/calendar" })); a.download = "deadline-reminders.ics";
+  document.body.appendChild(a); a.click(); a.remove();
+  toast(`${list.length} deadline${list.length > 1 ? "s" : ""} with reminders downloaded`);
+}
+let push = store.get("bjb-push", { on: false, endpoint: "" });
+async function checkHealth(){
+  if (live.health) return live.health;
+  try { const r = await fetch(`${CANVAS.API}/api/health`, { cache: "no-store" }); live.health = r.ok ? await r.json() : { push: false }; }
+  catch { live.health = { push: false }; }
+  return live.health;
+}
+const pushSupported = () => "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+const b64u = b => { const p = "=".repeat((4 - b.length % 4) % 4), s = atob((b + p).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from([...s].map(c => c.charCodeAt(0))); };
+function pushItems(){ return upcoming(60).filter(d => new Date(d.due) > Date.now()).map(d => ({ id: d.uid, title: d.title, course: d.course || "", due: d.due })); }
+async function enablePush(){
+  const h = await checkHealth();
+  if (!h.push || !h.publicKey){ toast("Phone notifications aren't switched on yet. Use calendar reminders for now."); return; }
+  if (!pushSupported()){ toast("This browser can't show notifications. On iPhone, add Blue Jay Buddy to your Home Screen first."); return; }
+  if (await Notification.requestPermission() !== "granted"){ toast("Notifications are blocked. Allow them in your browser settings."); return; }
+  const reg = await navigator.serviceWorker.ready;
+  const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(h.publicKey) });
+  const r = await fetch(`${CANVAS.API}/api/push`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ subscription: sub.toJSON(), items: pushItems() }) });
+  if (!r.ok){ toast("Couldn't turn on notifications. Try again later."); return; }
+  push = { on: true, endpoint: sub.endpoint }; store.set("bjb-push", push);
+  toast("Notifications on: 24 hours and 2 hours before each deadline");
+}
+async function disablePush(){
+  try {
+    const reg = await navigator.serviceWorker.ready, sub = await reg.pushManager.getSubscription();
+    await fetch(`${CANVAS.API}/api/push/off`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ endpoint: push.endpoint || sub?.endpoint }) });
+    await sub?.unsubscribe();
+  } catch {}
+  push = { on: false, endpoint: "" }; store.set("bjb-push", push); toast("Notifications off");
+}
+let pushSyncT;
+function syncPushSoon(){ // keep the server's copy of deadlines current
+  if (!push.on) return;
+  clearTimeout(pushSyncT);
+  pushSyncT = setTimeout(async () => {
+    try { const reg = await navigator.serviceWorker.ready, sub = await reg.pushManager.getSubscription(); if (!sub) return;
+      await fetch(`${CANVAS.API}/api/push`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ subscription: sub.toJSON(), items: pushItems() }) }); } catch {}
+  }, 1500);
+}
+async function remindersSheet(){
+  const h = await checkHealth(), canPush = h.push && pushSupported();
+  openSheet(`<div class="wiz-top"><span class="eyebrow">Deadline reminders</span><button class="iconx" type="button" data-close aria-label="Close">${svg("close")}</button></div>
+    <h2 id="sheetTitle">Never miss a deadline.</h2>
+    <div class="rem-opt">
+      <span class="ctx-ic">${svg("cal")}</span><div><b>Calendar reminders</b><span>Adds your upcoming deadlines to your phone's calendar with alerts 24 hours and 2 hours before. Works on every phone. Download again when new deadlines appear.</span></div>
+      <button class="pill primary" type="button" data-ics-due>${svg("cal")}Add to calendar</button></div>
+    <div class="rem-opt">
+      <span class="ctx-ic">${svg("bell")}</span><div><b>Phone notifications</b><span>${canPush ? "Blue Jay Buddy sends a notification 24 hours and 2 hours before each deadline, even when the app is closed. Only titles and due times are sent." : h.push ? "This browser can't show notifications. On iPhone, add Blue Jay Buddy to your Home Screen first (Share → Add to Home Screen), then open it from there." : "Coming soon. Use calendar reminders for now."}</span></div>
+      ${canPush ? (push.on ? `<button class="pill ghost" type="button" data-push-off>Turn off</button>` : `<button class="pill secondary" type="button" data-push-on>${svg("bell")}Turn on</button>`) : ""}</div>`, "small");
+}
+
 /* ================= calendar export ================= */
 function exportICS(){
   const real = realClasses();
@@ -949,6 +1145,13 @@ document.addEventListener("click", e => {
     setTimeout(() => render(true), 250); return;
   }
   if ((el = T("[data-imp-save]"))){ saveImport(); return; }
+  if ((el = T("[data-dates]"))){ go("academics", false); setTimeout(() => $("#dates")?.scrollIntoView({ behavior: reduced() ? "auto" : "smooth" }), 60); return; }
+  if ((el = T("[data-foodonly]"))){ store.set("bjb-food", !store.get("bjb-food", false)); render(true); return; }
+  if ((el = T("[data-route]"))){ shuttleRoute = +el.dataset.route; store.set("bjb-route", shuttleRoute); $$(".route-chip").forEach(b => b.setAttribute("aria-selected", b === el)); $("#shuttleStops").innerHTML = `<p class="note">Loading live arrivals…</p>`; paintShuttles(); return; }
+  if ((el = T("[data-reminders]"))){ remindersSheet(); return; }
+  if ((el = T("[data-ics-due]"))){ exportDueICS(); return; }
+  if ((el = T("[data-push-on]"))){ enablePush().then(() => remindersSheet()); return; }
+  if ((el = T("[data-push-off]"))){ disablePush().then(() => remindersSheet()); return; }
   if (T("#icsBtn")) exportICS();
   if (T("#searchBtn")){ window.scrollTo({top:0, behavior: reduced() ? "auto" : "smooth"}); setTimeout(() => $("#q").focus(), 300); }
 });
@@ -999,6 +1202,11 @@ if (!profile && !store.get("bjb-welcomed", false)){
       <button class="pill ghost" type="button" data-close>Just look around</button></div></div>`, "small");
   }, 1100);
 }
+// Live data: weather every 20 min, JHMI every 30 s while Today is open, events every 30 min.
+refreshLive();
+setInterval(() => { if (!document.hidden && tab === "home") refreshLive(["jhmi"]); }, 30000);
+setInterval(() => { if (!document.hidden) refreshLive(["wx", "events"]); }, 20 * 6e4);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshLive(tab === "home" ? ["jhmi", "wx"] : ["wx"]); });
 // Refresh Canvas deadlines when the app opens (at most every 30 minutes).
 if (due.feed && Date.now() - due.last > 30 * 6e4) syncCanvas(true);
 // Privacy-friendly usage count: one anonymous ping per browser per day. Nothing about the person is sent.

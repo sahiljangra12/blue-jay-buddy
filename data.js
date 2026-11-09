@@ -119,3 +119,18 @@ window.BJB.places = [
 window.BJB.photos = ["hero","gilman","brody","mse","keyser","decker","shriver","merg","museum","gate"]
   .map(key => ({ key, title: "", caption: "", src: () => "", credit: "", page: "#" }));
 window.BJB.buildingPhoto = {};
+
+// ---------- Key semester dates (Homewood full-time programs) ----------
+// Only dates confirmed from an official Johns Hopkins source go here.
+// Source: JHU 2026–2027 fact sheet (Homewood academic calendar). Add add/drop and withdrawal deadlines
+// from the registrar's calendar when you can confirm them.
+window.BJB.keyDatesSource = { t: "Registrar academic calendar", u: "https://registrar.jhu.edu/academic-calendar/" };
+window.BJB.keyDates = [
+  { from: "2026-08-31", label: "First day of fall classes" },
+  { from: "2026-11-26", label: "Thanksgiving Day" },
+  { from: "2026-12-11", label: "Last day of fall classes" },
+  { from: "2026-12-15", to: "2026-12-23", label: "Fall final exams" },
+  { from: "2027-01-25", label: "First day of spring classes" },
+  { from: "2027-04-30", label: "Last day of spring classes" },
+  { from: "2027-05-10", to: "2027-05-18", label: "Spring final exams" },
+];

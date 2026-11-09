@@ -1,7 +1,7 @@
 // Offline support: the app shell is cached so the hub opens without a connection.
 // When you change a file, bump VERSION here and the ?v= numbers in index.html so every browser loads the new copy together.
-const VERSION = "bjb-v7";
-const SHELL = ["./", "index.html", "styles.css?v=7", "data.js?v=7", "guides.js?v=7", "illustrations.js?v=7", "hours.js?v=7", "canvas.js?v=7", "import.js?v=7", "app.js?v=7", "privacy.html", "manifest.webmanifest", "assets/icon.svg", "assets/icon-192.png", "assets/fonts/bricolage.woff2"];
+const VERSION = "bjb-v8";
+const SHELL = ["./", "index.html", "styles.css?v=8", "data.js?v=8", "guides.js?v=8", "illustrations.js?v=8", "hours.js?v=8", "canvas.js?v=8", "import.js?v=8", "live.js?v=8", "app.js?v=8", "privacy.html", "manifest.webmanifest", "assets/icon.svg", "assets/icon-192.png", "assets/fonts/bricolage.woff2"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -20,4 +20,20 @@ self.addEventListener("fetch", e => {
       return res;
     }).catch(() => caches.match(e.request).then(r => r || caches.match("index.html")))
   );
+});
+
+// Deadline reminders sent by the server (see netlify/functions/push-check.mts).
+self.addEventListener("push", e => {
+  let d = {}; try { d = e.data ? e.data.json() : {}; } catch { d = { title: e.data?.text() }; }
+  e.waitUntil(self.registration.showNotification(d.title || "Blue Jay Buddy", {
+    body: d.body || "", tag: d.tag, icon: "assets/icon-192.png", badge: "assets/icon-192.png", data: { url: d.url || "./" },
+  }));
+});
+self.addEventListener("notificationclick", e => {
+  e.notification.close();
+  const url = new URL(e.notification.data?.url || "./", self.registration.scope).href;
+  e.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
+    const open = list.find(c => c.url.startsWith(self.registration.scope));
+    return open ? open.focus().then(c => c.navigate(url)) : clients.openWindow(url);
+  }));
 });

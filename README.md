@@ -12,6 +12,10 @@ A no-login student hub for Johns Hopkins University's Homewood campus. Open it a
 - **Canvas deadlines.** Paste your private Canvas Calendar Feed link once (no password). Assignments appear on Today and in Classes → Due, with tick-off. You can also upload the calendar file or add your own deadlines.
 - **Make it mine.** A 1-minute setup builds a personal checklist and picks for your program, home and interests.
 - **20+ step-by-step guides** with App Store and Google Play buttons (JHED and MFA, Wi-Fi, J-Card on your phone, TransLoc, night rides, printing, health, OIS check-in and more).
+- **Live on Today.** Weather with a heads-up before class ("Rain likely around 1 PM. Take an umbrella for Applied Statistics."), the next JHMI shuttle from Homewood, and the next key semester date (breaks, last day of classes, finals).
+- **Live shuttle board.** Arrival times for the JHMI, Keswick, Remington, Hampden, Night Ride and other routes, from the same feed as the official Hopkins shuttle tracker. Refreshes every 30 seconds.
+- **What's on at Hopkins.** Today's and this week's events from Hopkins Groups' public calendar, with a "Free food" filter. Refreshed every 2 hours by a GitHub Action (`scripts/build-events.mjs` → `events.json`).
+- **Deadline reminders.** Add your deadlines to your phone's calendar with alerts 24 hours and 2 hours before (works everywhere), or turn on push notifications (needs the Netlify functions).
 - **Calls always ask first**, so nobody dials the emergency line by accident.
 - Installable on phones, works offline, light and dark mode, animated campus illustrations.
 
@@ -31,6 +35,8 @@ A no-login student hub for Johns Hopkins University's Homewood campus. Open it a
 | `data.js` | Links, phone numbers, buildings. Update `reviewed` after each check. |
 | `guides.js` | Step-by-step guides |
 | `hours.js` | Opening hours by date range (rec center, Brody). Copy only from official pages. |
+| `data.js` → `keyDates` | Semester dates from the official academic calendar |
+| `live.js` | Weather (Open-Meteo), shuttle feed and shuttle route list |
 
 When you change any file, bump `VERSION` in `sw.js` and the `?v=` numbers in `index.html`.
 
@@ -41,6 +47,11 @@ When you change any file, bump `VERSION` in `sw.js` and the `?v=` numbers in `in
 | `/api/ics` | Fetches a Canvas Calendar Feed for the browser (Canvas hosts only; the link isn't stored) |
 | `/api/hit` | Anonymous once-a-day usage ping |
 | `/api/stats` | Daily usage totals for the last 30 days |
+| `/api/push`, `/api/push/off` | Saves or removes a phone's push subscription and its deadlines |
+| `push-check` (scheduled, every 15 min) | Sends the 24-hour and 2-hour deadline reminders |
+| `/api/health` | Shows whether push reminders are set up |
+
+Push reminders need `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` in the Netlify environment.
 
 The GitHub Pages copy calls these on `blue-jay-buddy.netlify.app`.
 
