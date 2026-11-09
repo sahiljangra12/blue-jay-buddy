@@ -1,16 +1,17 @@
 name: probe feeds
 on: push
 permissions:
-  contents: write
+  contents: read
 jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: |
+          set +e
           K=8882812681
           out=probe.txt; : > $out
-          p(){ echo "=== $1" >> $out; curl -sS -m 20 -A "Mozilla/5.0" -D - -o body.tmp "$1" 2>&1 | grep -iE "^HTTP|access-control|content-type" >> $out; head -c 1500 body.tmp >> $out; echo >> $out; }
+          p(){ echo "=== $1" >> $out; curl -sS -m 20 -A "Mozilla/5.0" -D - -o body.tmp "$1" 2>&1 | grep -iE "^HTTP|access-control|content-type" >> $out; head -c 1500 body.tmp >> $out 2>/dev/null; echo >> $out; true; }
           for H in jhu.transloc.com jhu.ridesystems.net jhm.transloc.com; do
             p "https://$H/Services/JSONPRelay.svc/GetRoutesForMapWithScheduleWithEncodedLine?apiKey=$K&isDispatch=false"
             p "https://$H/Services/JSONPRelay.svc/GetMapVehiclePoints?apiKey=$K&isPublicMap=true"
@@ -20,5 +21,4 @@ jobs:
           p "https://jhu.campusgroups.com/ical/jhu/ical_jhu.ics"
           p "https://jhu.campusgroups.com/ics_helper"
           p "https://registrar.jhu.edu/academic-calendar/"
-          git config user.name "Sahil"; git config user.email "jangrasahil1208@gmail.com"
-          git add probe.txt; git commit -m "probe results"; git push
+          cat probe.txt
