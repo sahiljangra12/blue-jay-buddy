@@ -40,6 +40,8 @@ for (const block of unfold(ics).split("BEGIN:VEVENT").slice(1)){
   if (!start) continue;
   const endMs = end ? end.date.getTime() : start.date.getTime() + 36e5;
   if (endMs < now || start.date.getTime() > until) continue;
+  // Recurring series sometimes arrive as one event stretched over months; their times would be wrong, so skip them.
+  if (endMs - start.date.getTime() > (start.allDay ? 4 : 1) * 864e5) continue;
   const title = txt(get("SUMMARY")), host = txt((block.match(/^ORGANIZER;CN="?([^":]*)"?/m) || [])[1]);
   const desc = txt(get("DESCRIPTION")).replace(/---\s*Event Details:.*$/, "").trim();
   const place = txt(get("LOCATION"));
