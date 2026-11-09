@@ -21,7 +21,7 @@ A no-login student hub for Johns Hopkins University's Homewood campus. Open it a
 - **Live shuttle map**, event filters by type with add-to-calendar, and a "leave by" time for your next in-person class.
 - **Display and backup.** Larger text, high contrast, and a backup file to move your setup to a new phone.
 - **Calls always ask first**, so nobody dials the emergency line by accident.
-- Installable on phones, works offline, light and dark mode, animated campus illustrations.
+- Installable on phones, works offline, light and dark mode. Real Homewood photography (public domain and Creative Commons, credited in the footer), Lucide icons and the Geist typeface.
 
 ## Trust and quality
 

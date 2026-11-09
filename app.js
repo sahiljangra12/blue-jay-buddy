@@ -2,7 +2,17 @@
 "use strict";
 const D = window.BJB, G = window.BJB_GUIDES || {}, MAPS = D.maps;
 // If the illustrations file has not loaded (old cached copy), fall back to plain colour panels instead of failing.
-const ART = window.BJB_ART || { scene: () => "", building: () => "", watch: () => {} };
+const PICS = window.BJB_PICS || {}, PIC = window.BJB_PIC || (() => "");
+// Photo credit text for a picture key, linking to its Wikimedia Commons page.
+const credit = k => PICS[k] ? `<a href="${esc(PICS[k].page)}" target="_blank" rel="noopener">Photo: ${esc(PICS[k].author.replace(/\s*\(talk\)/, ""))}, ${esc(PICS[k].license)}</a>` : "";
+const photo = (k, alt = "", cls = "", eager = false) => PICS[k] ? `<img class="${cls}" src="${PIC(k, 800)}" srcset="${PIC(k, 800)} 800w, ${PIC(k, 1600)} 1600w" sizes="(min-width: 900px) 50vw, 100vw" alt="${esc(alt)}" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async">` : "";
+// Buildings that have a photo.
+const BLD_PIC = { "Gilman Hall": "gilman", "Mason Hall": "mason", "Maryland Hall": "maryland", "Mudd Hall": "mudd", "Mergenthaler Hall": "mergenthaler", "Malone Hall": "malone",
+  "Brody Learning Commons": "brody", "Homewood Museum": "museum", "Levering Hall": "levering", "Shriver Hall": "shriver", "Hackerman Hall": "decker" };
+// One photo for each section of the app.
+const SEC_PIC = { academics: ["gilman-tower", "Gilman Hall's clock tower"], move: ["penn", "Baltimore Penn Station"], food: ["levering", "Levering Plaza toward Gilman Hall"],
+  fun: ["shriver", "Shriver Hall"], health: ["north-gate", "The tree-lined North Gate path"], services: ["maryland", "Maryland Hall in the snow"],
+  map: ["decker", "Hackerman, Malone and Mason halls on the Decker Quad"], guides: ["peabody-library", "The George Peabody Library"] };
 const HOURS = window.BJB_HOURS || { status: () => ({ known: false, text: "Check hours" }), week: () => [] };
 const CANVAS = window.BJB_CANVAS, IMPORT = window.BJB_IMPORT, LIVE = window.BJB_LIVE;
 D.places = D.places || []; D.contact = D.contact || "sfnu1@jh.edu"; D.reviewed = D.reviewed || "";
@@ -24,47 +34,62 @@ const store = {
 };
 
 /* ================= icons ================= */
+// Icons: Lucide (ISC license, lucide.dev).
 const ICON = {
-  academics:'<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2 9 2 12 0v-5"/>',
-  services:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>',
-  health:'<path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1L12 21.5l8.8-8.8a5 5 0 0 0 0-7.1z"/>',
-  move:'<rect x="4" y="3" width="16" height="14" rx="3"/><path d="M4 11h16M8 21l1-4M16 21l-1-4"/>',
-  food:'<path d="M4 3v8a3 3 0 0 0 6 0V3M7 3v18M17 3c-2 0-3 3-3 6s1 4 3 4v8"/>',
-  fun:'<circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
-  safety:'<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="M9 12l2 2 4-4"/>',
-  phone:'<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
-  walk:'<circle cx="13" cy="4" r="2"/><path d="M9 21l2-6 3 3v5M7 12l3-4 4 1 3 3M10 8l-1 6"/>',
-  book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5V21h16"/>',
-  star:'<path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/>',
-  guide:'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
-  open:'<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3"/>',
-  sparkle:'<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/>',
-  apple:'<path d="M16.4 12.6c0-2.4 2-3.5 2-3.6-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9s-1.8-.9-3-.8a4.5 4.5 0 0 0-3.8 2.3c-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7c1.3 0 2.1-1.1 2.8-2.3a10 10 0 0 0 1.3-2.6s-2.5-1-2.5-3.7zM14.2 5.5A3.3 3.3 0 0 0 15 3a3.4 3.4 0 0 0-2.2 1.1 3.2 3.2 0 0 0-.8 2.4 2.8 2.8 0 0 0 2.2-1z"/>',
-  play:'<path d="M4 3.5v17a1 1 0 0 0 1.5.9L20 13a1.2 1.2 0 0 0 0-2L5.5 2.6A1 1 0 0 0 4 3.5z"/>',
-  close:'<path d="M18 6 6 18M6 6l12 12"/>',
-  check:'<path d="M20 6 9 17l-5-5"/>',
-  copy:'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
-  video:'<rect x="2" y="6" width="14" height="12" rx="2"/><path d="m16 10 6-3v10l-6-3z"/>',
-  edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
-  plus:'<path d="M12 5v14M5 12h14"/>',
-  cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
-  trash:'<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>',
-  shield:'<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="M9 12l2 2 4-4"/>',
-  upload:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>',
-  download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
-  calc:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M8 15h2M12 15h2M8 18h2M12 18h4"/>',
-  map:'<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
-  calplus:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/>',
-  camera:'<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
-  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
-  moon:'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
-  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
-  link:'<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
-  refresh:'<path d="M21 12a9 9 0 1 1-2.6-6.4L21 8"/><path d="M21 3v5h-5"/>',
-  chev:'<path d="m9 18 6-6-6-6"/>',
-  rain:'<path d="M20 16.6A5 5 0 0 0 18 7h-1.3A8 8 0 1 0 4 15.3"/><path d="M8 19v2M8 13v2M16 19v2M16 13v2M12 21v2M12 15v2"/>',
-  bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
-  pizza:'<path d="M12 2 2 21h20z"/><circle cx="10" cy="14" r="1"/><circle cx="14" cy="16" r="1"/><circle cx="12" cy="10" r="1"/>',
+  academics:'<path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z" /> <path d="M22 10v6" /> <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5" />',
+  apple:'<path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z" /> <path d="M10 2c1 .5 2 2 2 5" />',
+  bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /> <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />',
+  book:'<path d="M12 7v14" /> <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />',
+  cal:'<path d="M8 2v4" /> <path d="M16 2v4" /> <rect width="18" height="18" x="3" y="4" rx="2" /> <path d="M3 10h18" />',
+  calc:'<rect width="16" height="20" x="4" y="2" rx="2" /> <line x1="8" x2="16" y1="6" y2="6" /> <line x1="16" x2="16" y1="14" y2="18" /> <path d="M16 10h.01" /> <path d="M12 10h.01" /> <path d="M8 10h.01" /> <path d="M12 14h.01" /> <path d="M8 14h.01" /> <path d="M12 18h.01" /> <path d="M8 18h.01" />',
+  calplus:'<path d="M8 2v4" /> <path d="M16 2v4" /> <path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8" /> <path d="M3 10h18" /> <path d="M16 19h6" /> <path d="M19 16v6" />',
+  camera:'<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /> <circle cx="12" cy="13" r="3" />',
+  check:'<path d="M20 6 9 17l-5-5" />',
+  chev:'<path d="m9 18 6-6-6-6" />',
+  clock:'<circle cx="12" cy="12" r="10" /> <polyline points="12 6 12 12 16 14" />',
+  close:'<path d="M18 6 6 18" /> <path d="m6 6 12 12" />',
+  copy:'<rect width="14" height="14" x="8" y="8" rx="2" ry="2" /> <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />',
+  download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /> <polyline points="7 10 12 15 17 10" /> <line x1="12" x2="12" y1="15" y2="3" />',
+  edit:'<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /> <path d="m15 5 4 4" />',
+  food:'<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /> <path d="M7 2v20" /> <path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />',
+  fun:'<path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" /> <path d="M13 5v2" /> <path d="M13 17v2" /> <path d="M13 11v2" />',
+  guide:'<path d="m3 17 2 2 4-4" /> <path d="m3 7 2 2 4-4" /> <path d="M13 6h8" /> <path d="M13 12h8" /> <path d="M13 18h8" />',
+  health:'<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /> <path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27" />',
+  link:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /> <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />',
+  map:'<path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" /> <path d="M15 5.764v15" /> <path d="M9 3.236v15" />',
+  moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />',
+  move:'<path d="M8 6v6" /> <path d="M15 6v6" /> <path d="M2 12h19.6" /> <path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3" /> <circle cx="7" cy="18" r="2" /> <path d="M9 18h5" /> <circle cx="16" cy="18" r="2" />',
+  open:'<path d="M7 7h10v10" /> <path d="M7 17 17 7" />',
+  phone:'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />',
+  pizza:'<path d="m12 14-1 1" /> <path d="m13.75 18.25-1.25 1.42" /> <path d="M17.775 5.654a15.68 15.68 0 0 0-12.121 12.12" /> <path d="M18.8 9.3a1 1 0 0 0 2.1 7.7" /> <path d="M21.964 20.732a1 1 0 0 1-1.232 1.232l-18-5a1 1 0 0 1-.695-1.232A19.68 19.68 0 0 1 15.732 2.037a1 1 0 0 1 1.232.695z" />',
+  play:'<polygon points="6 3 20 12 6 21 6 3" />',
+  plus:'<path d="M5 12h14" /> <path d="M12 5v14" />',
+  rain:'<path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" /> <path d="M16 14v6" /> <path d="M8 14v6" /> <path d="M12 16v6" />',
+  refresh:'<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /> <path d="M21 3v5h-5" /> <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /> <path d="M8 16H3v5" />',
+  safety:'<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />',
+  services:'<path d="M16 10h2" /> <path d="M16 14h2" /> <path d="M6.17 15a3 3 0 0 1 5.66 0" /> <circle cx="9" cy="11" r="2" /> <rect x="2" y="5" width="20" height="14" rx="2" />',
+  shield:'<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /> <path d="m9 12 2 2 4-4" />',
+  sparkle:'<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" /> <path d="M20 3v4" /> <path d="M22 5h-4" /> <path d="M4 17v2" /> <path d="M5 18H3" />',
+  star:'<path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z" />',
+  sun:'<circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" />',
+  trash:'<path d="M3 6h18" /> <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /> <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /> <line x1="10" x2="10" y1="11" y2="17" /> <line x1="14" x2="14" y1="11" y2="17" />',
+  upload:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /> <polyline points="17 8 12 3 7 8" /> <line x1="12" x2="12" y1="3" y2="15" />',
+  video:'<path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5" /> <rect x="2" y="6" width="14" height="12" rx="2" />',
+  walk:'<path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z" /> <path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z" /> <path d="M16 17h4" /> <path d="M4 13h4" />',
+  building:'<line x1="3" x2="21" y1="22" y2="22" /> <line x1="6" x2="6" y1="18" y2="11" /> <line x1="10" x2="10" y1="18" y2="11" /> <line x1="14" x2="14" y1="18" y2="11" /> <line x1="18" x2="18" y1="18" y2="11" /> <polygon points="12 2 20 7 4 7" />',
+  search:'<circle cx="11" cy="11" r="8" /> <path d="m21 21-4.3-4.3" />',
+  home:'<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /> <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />',
+  alert:'<path d="M7 18v-6a5 5 0 1 1 10 0v6" /> <path d="M5 21a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z" /> <path d="M21 12h1" /> <path d="M18.5 4.5 18 5" /> <path d="M2 12h1" /> <path d="M12 2v1" /> <path d="m4.929 4.929.707.707" /> <path d="M12 12v6" />',
+  info:'<circle cx="12" cy="12" r="10" /> <path d="M12 16v-4" /> <path d="M12 8h.01" />',
+  wifi:'<path d="M12 20h.01" /> <path d="M2 8.82a15 15 0 0 1 20 0" /> <path d="M5 12.859a10 10 0 0 1 14 0" /> <path d="M8.5 16.429a5 5 0 0 1 7 0" />',
+  printer:'<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /> <path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6" /> <rect x="6" y="14" width="12" height="8" rx="1" />',
+  dumbbell:'<path d="M14.4 14.4 9.6 9.6" /> <path d="M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z" /> <path d="m21.5 21.5-1.4-1.4" /> <path d="M3.9 3.9 2.5 2.5" /> <path d="M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z" />',
+  cloud:'<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />',
+  snow:'<line x1="2" x2="22" y1="12" y2="12" /> <line x1="12" x2="12" y1="2" y2="22" /> <path d="m20 16-4-4 4-4" /> <path d="m4 8 4 4-4 4" /> <path d="m16 4-4 4-4-4" /> <path d="m8 20 4-4 4 4" />',
+  arrow:'<path d="M5 12h14" /> <path d="m12 5 7 7-7 7" />',
+  mapPin:'<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" /> <circle cx="12" cy="10" r="3" />',
+  users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /> <circle cx="9" cy="7" r="4" /> <path d="M22 21v-2a4 4 0 0 0-3-3.87" /> <path d="M16 3.13a4 4 0 0 1 0 7.75" />',
+  heart:'<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />'
 };
 const svg = (name, attrs = "") => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${attrs}>${ICON[name]}</svg>`;
 const telOf = p => "tel:" + p.replace(/\D/g, "");
@@ -132,7 +157,12 @@ $("#themeBtn").addEventListener("click", () => {
   applyTheme(next); store.set("bjb-theme", next); toast(next === "dark" ? "Dark mode" : "Light mode");
 });
 function setSky(){
-  const h = new Date().getHours();
+  const now = new Date(), h = now.getHours(), mo = now.getMonth();
+  // Hero photo follows the clock and the season.
+  const key = (h >= 17 || h < 6) ? "quad-dusk" : (mo === 11 || mo <= 1) ? "gilman-snow" : (mo >= 2 && mo <= 4) ? "quad-spring" : "gilman";
+  const alt = { "quad-dusk": "Wyman Quad at dusk", "gilman-snow": "Gilman Hall from the Upper Quad in winter", "quad-spring": "Wyman Quad in spring", "gilman": "Gilman Hall" }[key];
+  const img = $("#heroImg");
+  if (img && img.dataset.key !== key){ img.dataset.key = key; img.srcset = `${PIC(key, 800)} 800w, ${PIC(key, 1600)} 1600w`; img.src = PIC(key, 1600); img.alt = alt; $("#heroCredit").innerHTML = credit(key); }
   document.body.dataset.sky = h >= 5 && h < 8 ? "dawn" : h >= 8 && h < 17 ? "day" : h >= 17 && h < 20 ? "dusk" : "night";
   const g = h < 5 ? "Up late" : h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : h < 21 ? "Good evening" : "Good night";
   $("#greet").textContent = `${g}${profile?.name ? ", " + profile.name : ""} · ${new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})}`;
@@ -150,7 +180,7 @@ function heroCta(){
   $("#heroTitle").innerHTML = profile || realClasses().length ? `Your ${DAY[d]}.` : "Hopkins,<br>made simple.";
   $("#heroSub").textContent = bits.length > 1 ? bits.join(" · ") + "." : "Classes, deadlines, shuttles, food and safety in one place, with step-by-step guides. No login.";
 }
-$("#credits").innerHTML = `<li>All illustrations, the campus scenes and the Blue Jay Buddy mark are original artwork drawn in code for this project.</li>`;
+$("#credits").innerHTML = Object.keys(PICS).map(k => `<li>${esc(PICS[k].title.replace(/\.jpe?g$/i, ""))}: ${credit(k)}</li>`).join("") + `<li>Icons: Lucide (ISC license). The Blue Jay Buddy mark is original.</li>`;
 
 /* ================= quick actions ================= */
 function renderQuick(){
@@ -197,7 +227,7 @@ function card(it, i = 0, words = []){
 }
 function bCard([n, type], i = 0, words = []){
   return `<a class="card bcard reveal" style="--i:${i}" href="${MAPS(n)}" target="_blank" rel="noopener" aria-label="${esc(n)}, ${esc(type)}. Walking directions">
-    <div class="bimg">${ART.building(n, type)}</div>
+    <div class="bimg">${BLD_PIC[n] ? photo(BLD_PIC[n], n) : `<span class="bimg-ic">${svg("building")}</span>`}</div>
     <div class="card-body"><h3 class="t">${highlight(n, words)}</h3><div class="meta"><span class="chip">${esc(type)}</span><span class="note">Directions ›</span></div></div>
   </a>`;
 }
@@ -211,8 +241,8 @@ function guideCard(id, i = 0, words = []){
 }
 function bento(){
   return `<section class="io">${head("Your campus","Homewood, up close.","Tap a place for walking directions.")}
-    <div class="bento">${D.places.map(p => `<figure class="ph">
-      ${ART.scene(p.key)}
+    <div class="bento">${D.places.filter(p => PICS[p.pic]).map(p => `<figure class="ph">
+      ${photo(p.pic, p.title)}
       <figcaption><b>${esc(p.title)}</b><span>${esc(p.caption)}</span></figcaption>
       <a href="${MAPS(p.title)}" target="_blank" rel="noopener" aria-label="Directions to ${esc(p.title)}"></a></figure>`).join("")}</div></section>`;
 }
@@ -552,23 +582,21 @@ function viewHome(){
   ${favItems.length ? `<section class="io" aria-label="Favorites"><h2 class="subhead">Your favorites</h2><div class="chips">${favItems.map(it => `<a class="chiplink" href="${esc(it.u)}" target="_blank" rel="noopener"><span class="badge sm b-${it.cat}">${svg(it.cat)}</span>${esc(it.t)}</a>`).join("")}</div></section>` : ""}
   ${contextCard()}
   <section class="io" aria-labelledby="h-apps">
-    <h2 class="subhead" id="h-apps">Everything, one tap away</h2>
-    <nav class="launcher" aria-label="Apps and sections">${launcher()}</nav>
+    <h2 class="subhead" id="h-apps">Explore</h2>
+    <nav class="launcher" aria-label="Sections and apps">${launcher()}</nav>
   </section>
   <section class="tile events-tile io" id="eventsCard" aria-label="Events" hidden></section>
   ${planFirst ? "" : plan}
   <p class="feedback-line">Built by a student. Something missing or wrong? <a href="mailto:${D.contact}?subject=${encodeURIComponent("Blue Jay Buddy feedback")}">Tell me</a> · <a href="privacy.html">Privacy</a></p>`;
 }
 // The launcher: Hopkins apps students open daily, then every section of Blue Jay Buddy.
+// "Explore": one photo tile per section, plus the Hopkins apps students open every day.
 function launcher(){
-  const ext = [["Canvas","https://canvas.jhu.edu","academics","#1D64B8"],["SIS","https://sis.jhu.edu","services","#4B4FC4"],
-["Dining","https://studentaffairs.jhu.edu/dining/where-to-eat/","food","#C2384F"],
-    ["Library","https://www.library.jhu.edu","book","#0B7A75"]];
-  const tools = `<button class="app" type="button" data-tools="gpa"><span class="app-ic" style="--h:#B2397E">${svg("calc")}</span><span>Study tools</span></button>`;
-  const int = [["move","Get around","move","#C27A0A"],["fun","Events","star","#7A4BC4"],["map","Buildings","walk","#9A3D22"],
-    ["health","Health","health","#13996B"],["services","Services","services","#3D5A80"],["guides","Guides","guide","#0E8A62"],["safety","Safety","safety","#C62828"]];
-  return ext.map(([l, u, ic, h]) => `<a class="app" href="${u}" target="_blank" rel="noopener"><span class="app-ic" style="--h:${h}">${svg(ic)}</span><span>${l}</span></a>`).join("") + tools
-    + int.map(([id, l, ic, h]) => `<button class="app" type="button" data-tab="${id}"><span class="app-ic" style="--h:${h}">${svg(ic)}</span><span>${l}</span></button>`).join("");
+  const tiles = [["academics","Classes"],["move","Get around"],["food","Food"],["fun","Events & rec"],["map","Buildings"],["health","Health"],["services","Services"],["guides","Guides"]];
+  const apps = [["Canvas","https://canvas.jhu.edu","academics"],["SIS","https://sis.jhu.edu","services"],["Library","https://www.library.jhu.edu","book"],["Dining","https://studentaffairs.jhu.edu/dining/where-to-eat/","food"]];
+  return `<div class="explore">${tiles.map(([id, l], i) => `<button class="ptile${i === 0 ? " wide" : ""}" type="button" data-tab="${id}">${photo(SEC_PIC[id][0], "")}<span class="ptile-l">${l}</span></button>`).join("")}
+    <button class="ptile safety" type="button" data-tab="safety"><span class="ptile-ic">${svg("safety")}</span><span class="ptile-l">Safety</span></button></div>
+    <div class="applinks">${apps.map(([l, u, ic]) => `<a class="applink" href="${u}" target="_blank" rel="noopener">${svg(ic)}${l}${svg("open")}</a>`).join("")}<button class="applink" type="button" data-tools="gpa">${svg("calc")}Study tools</button><button class="applink" type="button" data-sos>${svg("alert")}Emergency card</button></div>`;
 }
 function checkRow(id){
   return `<li class="${doneSet.has(id)?"done":""}">
@@ -627,10 +655,17 @@ function classSheet(c = null){
     <h2 id="sheetTitle">${c ? esc(c.name) : "Add a class"}</h2>${classForm("cf", c)}`);
 }
 
+// A photo banner at the top of each section page.
+function secBanner(id){
+  const s = D.sections.find(x => x.id === id) || (id === "guides" ? { label: "Guides", intro: "Step-by-step help with app download links." } : null);
+  if (!s) return "";
+  const pic = SEC_PIC[id];
+  return `<header class="sec-banner${pic ? "" : " plain"}${id === "safety" ? " sos" : ""}">${pic ? photo(pic[0], pic[1], "", true) : ""}
+    <div class="sec-banner-in"><h1>${esc(s.label)}</h1><p>${esc(s.intro)}</p></div>${pic ? `<span class="credit">${credit(pic[0])}</span>` : ""}</header>`;
+}
 function viewGuides(){
   const groups = [["start","Start here","New to Hopkins? Do these first."],["everyday","Everyday","Things you will do every week."],["health","Health and safety","Read these before you need them."]];
-  return `<section>${head("Guides","How to do anything at Hopkins.","Step-by-step help with app download links, written for new and returning students.")}</section>
-  ${groups.map(([g,label,sub]) => `<section class="io"><h3 class="subhead">${label} <span class="note">· ${sub}</span></h3><div class="grid">${Object.keys(G).filter(id => G[id].group === g).map((id,i) => guideCard(id,i)).join("")}</div></section>`).join("")}`;
+  return `${groups.map(([g,label,sub]) => `<section class="io"><h3 class="subhead">${label} <span class="note">· ${sub}</span></h3><div class="grid">${Object.keys(G).filter(id => G[id].group === g).map((id,i) => guideCard(id,i)).join("")}</div></section>`).join("")}`;
 }
 function viewDue(){
   const all = deadlines(), now = Date.now();
@@ -657,14 +692,14 @@ function viewSection(id){
   const s = D.sections.find(x => x.id === id);
   if (id === "academics") return `${viewWeek()}${viewDue()}${toolsTile()}${viewDates()}
     <section class="io">${head("Links", "Classes and academics.", esc(s.intro))}<div class="grid">${D.items.filter(i => i.cat === id).map((it,i) => card(it,i)).join("")}</div></section>`;
-  if (id === "fun") return `${viewEvents()}<section>${head(s.label, esc(s.label) + ".", esc(s.intro))}
+  if (id === "fun") return `${viewEvents()}<section>${head("", "Clubs and the rec center.")}
     <div class="tile hours-tile"><div class="cl-head"><div><span class="eyebrow">O'Connor Rec Center</span><span class="cl-count">${esc(HOURS.status("rec").text)}</span></div></div>
     <table class="hours">${HOURS.week("rec").map(r => `<tr class="${r.today ? "today" : ""}"><td>${DAY[r.day]}${r.today ? " · today" : ""}</td><td>${esc(r.text)}</td></tr>`).join("")}</table>
     <p class="note">${esc(HOURS.rec.note)} Hours checked ${esc(monthLabel(HOURS.rec.checked))}. <a href="${HOURS.rec.url}" target="_blank" rel="noopener">Official hours ›</a></p></div>
     <div class="grid" style="margin-top:20px">${D.items.filter(i => i.cat === id).map((it,i) => card(it,i)).join("")}</div></section>`;
   const body = id === "map" ? D.buildings.map((b,i) => bCard(b,i)).join("") : D.items.filter(i => i.cat === id).map((it,i) => card(it,i)).join("");
   const related = id === "map" ? [] : [...new Set(D.items.filter(i => i.cat === id && i.g).map(i => i.g))];
-  return `${id === "move" ? shuttleBoardHTML() : ""}${id === "safety" ? sosTile() : ""}<section>${head(s.label, esc(s.label) + ".", esc(s.intro))}<div class="grid">${body}</div></section>
+  return `${id === "move" ? shuttleBoardHTML() : ""}${id === "safety" ? sosTile() : ""}<section>${id === "move" ? head("", "More ways to get around.") : ""}<div class="grid">${body}</div></section>
   ${id === "map" ? bento() : ""}
   ${related.length ? `<section class="io"><h3 class="subhead">How-to guides</h3><div class="grid">${related.map((g,i) => guideCard(g,i)).join("")}</div></section>` : ""}`;
 }
@@ -701,15 +736,15 @@ function render(quiet = false){
   renderTabs(q);
   $("#main").classList.toggle("calm", quiet);
   try {
-    $("#main").innerHTML = q ? viewSearch(q) : tab === "home" ? viewHome() : tab === "guides" ? viewGuides() : viewSection(tab);
+    $("#main").innerHTML = q ? viewSearch(q) : tab === "home" ? viewHome() : (secBanner(tab) + (tab === "guides" ? viewGuides() : viewSection(tab)));
   } catch (err) {
     // Show a way out instead of an empty page.
     $("#main").innerHTML = `<div class="empty">Something did not load properly. <button class="pill primary" type="button" onclick="location.reload()">Reload</button></div>`;
     console.error(err);
     return;
   }
-  $$("#main .io").forEach(el => { if (quiet || !io) el.classList.add("in"); else io.observe(el); });
-  ART.watch($("#main"));
+  $$("#main .io").forEach(el => el.classList.add("in")); // no scroll animations: content is simply there
+
   paintLive();
   clearInterval(shuttleTimer);
   if (tab === "move" && !q){ paintShuttles(); shuttleTimer = setInterval(() => { if (!document.hidden) paintShuttles(); }, 30000); }
@@ -736,7 +771,7 @@ function openSheet(html, cls = ""){
   sheet.className = "sheet " + cls;
   if (!sheet.open) sheet.showModal();
   sheetBody.scrollTop = 0;
-  ART.watch(sheetBody);
+
   const f = sheetBody.querySelector("[autofocus], .primary, input, button, a"); if (f) f.focus({preventScroll:true});
 }
 function closeSheet(){
@@ -1226,7 +1261,7 @@ if (!profile && !store.get("bjb-welcomed", false)){
   setTimeout(() => {
     if (sheet.open) return;
     openSheet(`<div class="call-sheet welcome">
-      <div class="welcome-hero">${ART.scene("keyser")}<img class="logo" src="assets/icon.svg" alt=""></div>
+      <div class="welcome-hero">${photo("quad-spring", "Wyman Quad in spring")}<img class="logo" src="assets/icon.svg" alt=""></div>
       <h2 id="sheetTitle">Welcome to Blue Jay Buddy</h2>
       <p>Classes, shuttles, food, buildings, safety numbers and step-by-step guides for Hopkins Homewood. No login, nothing to install.</p>
       <div class="sheet-actions"><button class="pill primary big" type="button" data-wizard>${svg("sparkle")}Make it mine</button>

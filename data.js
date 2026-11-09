@@ -101,23 +101,19 @@ window.BJB = {
 };
 window.BJB.maps = MAPS;
 
-// ---------- Campus places shown as animated illustrations (illustrations.js) ----------
+// ---------- Campus places shown with photos (photos.js) ----------
 window.BJB.places = [
-  { key: "keyser",  title: "Keyser Quad", caption: "The lawn where everyone ends up on a sunny day." },
-  { key: "brody",   title: "Brody Learning Commons", caption: "Open late, glass walls, group rooms." },
-  { key: "mse",     title: "Milton S. Eisenhower Library", caption: "The main Homewood library, mostly underground." },
-  { key: "decker",  title: "Decker Quad", caption: "Engineering's side of campus." },
-  { key: "gilman",  title: "Gilman Hall", caption: "The clock tower at the head of the Upper Quad." },
-  { key: "shriver", title: "Shriver Hall", caption: "Concerts, talks and big lectures." },
-  { key: "museum",  title: "Homewood Museum", caption: "The 1801 house the campus is named after." },
-  { key: "gate",    title: "East Gate", caption: "The Charles Street entrance." },
+  { pic: "quad-spring", title: "Wyman Quad", caption: "Spring blossoms between Gilman and the Wyman Park Building." },
+  { pic: "gilman", title: "Gilman Hall", caption: "The clock tower at the head of the campus." },
+  { pic: "decker", title: "Decker Quad", caption: "Hackerman, Malone and Mason halls: engineering's side of campus." },
+  { pic: "brody", title: "Brody Learning Commons", caption: "Group study rooms, open until 2 AM most nights." },
+  { pic: "shriver", title: "Shriver Hall", caption: "Concerts, talks and big lectures." },
+  { pic: "museum", title: "Homewood Museum", caption: "The 1801–1808 house the campus is named after." },
+  { pic: "monument", title: "Johns Hopkins Monument", caption: "Charles Street and 33rd Street, by Hans Schuler (1935)." },
+  { pic: "peabody-library", title: "George Peabody Library", caption: "At the Peabody Institute in Mount Vernon. Take the JHMI shuttle." },
 ];
 
-// Compatibility for browsers still running an older cached app.js (which expected photos).
-// Empty entries make the old code skip the photos instead of failing. Safe to delete after a few weeks.
-window.BJB.photos = ["hero","gilman","brody","mse","keyser","decker","shriver","merg","museum","gate"]
-  .map(key => ({ key, title: "", caption: "", src: () => "", credit: "", page: "#" }));
-window.BJB.buildingPhoto = {};
+
 
 // ---------- Key semester dates ----------
 // Only dates confirmed from an official Johns Hopkins source go here. Checked 2026-11.
