@@ -573,7 +573,7 @@ function viewHome(){
 
   return `
   <section class="dash" aria-label="Today">
-    <div class="tile next reveal"><img class="deco" src="assets/icon.svg" alt="">${nextTileHTML()}<p class="wx-note" id="wxNote" hidden></p></div>
+    <div class="tile next reveal">${nextTileHTML()}<p class="wx-note" id="wxNote" hidden></p></div>
     ${dueTileHTML()}
   </section>
   ${openNowHTML()}
@@ -1262,17 +1262,20 @@ window.addEventListener("hashchange", () => { const h = location.hash.slice(1); 
 
 /* ================= boot ================= */
 renderQuick(); render();
-if (!profile && !store.get("bjb-welcomed", false)){
-  store.set("bjb-welcomed", true);
+// First visit on a new phone or computer: ask the person to personalise before anything else.
+// (Recognised per device with browser storage; no IP addresses or accounts.) If they skip, ask again on their next day of use.
+if (!profile && store.get("bjb-asked", "") !== new Date().toDateString()){
+  store.set("bjb-asked", new Date().toDateString()); store.set("bjb-welcomed", true);
   setTimeout(() => {
-    if (sheet.open) return;
+    if (sheet.open || profile) return;
     openSheet(`<div class="call-sheet welcome">
-      <div class="welcome-hero">${photo("quad-spring", "Wyman Quad in spring")}<img class="logo" src="assets/icon.svg" alt=""></div>
-      <h2 id="sheetTitle">Welcome to Blue Jay Buddy</h2>
-      <p>Classes, shuttles, food, buildings, safety numbers and step-by-step guides for Hopkins Homewood. No login, nothing to install.</p>
-      <div class="sheet-actions"><button class="pill primary big" type="button" data-wizard>${svg("sparkle")}Make it mine</button>
-      <button class="pill ghost" type="button" data-close>Just look around</button></div></div>`, "small");
-  }, 1100);
+      <img class="welcome-logo" src="assets/logo.webp" alt="Blue Jay Buddy logo" width="148" height="148">
+      <h2 id="sheetTitle">First, let's make it yours</h2>
+      <p>Tell Blue Jay Buddy your program, your classes and how you get around. You'll get your next class, deadlines, the right shuttles and a checklist made for you.</p>
+      <p class="note">Takes about a minute. No login, and it stays on this device.</p>
+      <div class="sheet-actions"><button class="pill primary big" type="button" data-wizard>${svg("sparkle")}Personalise it</button>
+      <button class="pill ghost" type="button" data-close>Skip for now</button></div></div>`, "small");
+  }, 350);
 }
 // Live data: weather every 20 min, JHMI every 30 s while Today is open, events every 30 min.
 refreshLive();
