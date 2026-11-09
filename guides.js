@@ -75,7 +75,7 @@ window.BJB_GUIDES = {
     title: "Get your J-Card and put it on your phone", group: "start", time: "5 min", who: "Everyone",
     apps: [{ name: "Transact eAccounts", ios: "https://apps.apple.com/app/id1493974212", android: PLAY("Transact eAccounts") }],
     steps: [
-      "New first-year students get their <b>J-Card</b> at move-in. Full-time graduate students upload a photo in the Graduate Student Portal. Part-time students visit the J-Card Office in <b>Levering Hall, room 04B</b> (Mon–Fri 8:30 AM–4:30 PM, closed 1–2 PM).",
+      "New first-year students get their <b>J-Card</b> at move-in. Full-time graduate students upload a photo in the Graduate Student Portal. Others visit the J-Card Office. Call first to confirm its location and hours.",
       "Set up your two-step sign-in (MFA) first. See the JHED guide.",
       "From the first day of classes, add the <b>mobile credential</b> to Apple Wallet (iPhone and Apple Watch), Google Wallet or Samsung Wallet from the J-Card website.",
       "Hold your phone where you would tap the card: residence halls, dining, the bookstore and library printing. Your plastic card still works as a backup.",
@@ -276,7 +276,7 @@ window.BJB_GUIDES = {
       "Want a team? Sign up for intramurals or club sports. Volleyball, soccer and more run each semester.",
     ],
     tips: ["Pool and climbing wall keep their own hours. Check before you go."],
-    link: { t: "Rec center hours", u: "https://studentaffairs.jhu.edu/recreation/ralph-s-oconnor-recreation-center/hours-of-operation" },
+    link: { t: "Rec center hours", u: "https://students.jhu.edu/student-life/get-involved/oconnor-center-for-recreation-well-being/hours-of-operation/" },
     phones: [{ t: "Membership services", p: "410-516-5229" }],
   },
 

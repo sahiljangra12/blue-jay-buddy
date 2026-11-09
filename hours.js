@@ -9,14 +9,13 @@ const H = window.BJB_HOURS = {
   rec: {
     name: "O'Connor Rec Center",
     short: "Rec center",
-    url: "https://studentaffairs.jhu.edu/recreation/ralph-s-oconnor-recreation-center/hours-of-operation",
+    url: "https://students.jhu.edu/student-life/get-involved/oconnor-center-for-recreation-well-being/hours-of-operation/",
     checked: "2026-11",
     note: "Weight rooms and courts close 10 minutes before the building. Pool and climbing wall keep their own hours.",
-    rules: [
-      // Fall and spring semester hours from the rec center's hours page.
-      { from: "2026-11-01", to: "2026-12-12", week: { 0: ["10:00","22:00"], 1: ["06:00","24:00"], 2: ["06:00","24:00"], 3: ["06:00","24:00"], 4: ["06:00","24:00"], 5: ["06:00","22:00"], 6: ["08:00","22:00"] } },
-    ],
-    unknown: [["2026-11-25","2026-11-29"]], // Thanksgiving break: hours not posted
+    // The hours that were here came from an outdated copy of the rec site (studentaffairs.jhu.edu).
+    // Leave empty until the current page (students.jhu.edu) is checked; the app then says "Check hours".
+    rules: [],
+    unknown: [],
   },
   brody: {
     name: "Brody Learning Commons",

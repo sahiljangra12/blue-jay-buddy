@@ -36,7 +36,7 @@ window.BJB = {
     {cat:"academics",t:"Academic calendar",g:"calendar",c:"2026-10",d:"First day of classes, add/drop and withdrawal deadlines, breaks and finals for each school.",u:"https://registrar.jhu.edu/academic-calendar/divisional-academic-calendars",k:"calendar dates add drop withdraw deadline break holiday finals exams semester start end"},
 
     // Services
-    {cat:"services",t:"J-Card Office",g:"jcard",c:"2026-11",d:"Student ID, lost cards, mobile credential. Levering Hall, room 04B (South Wing). Mon–Fri 8:30 AM–4:30 PM, closed 1–2 PM.",u:"https://studentaffairs.jhu.edu/jcard/obtain-a-jcard",p:"410-516-5121",k:"id card lost jcard j-card levering"},
+    {cat:"services",t:"J-Card Office",g:"jcard",c:"2026-11",d:"Student ID, lost cards, mobile credential.",u:"https://studentaffairs.jhu.edu/jcard/obtain-a-jcard",p:"410-516-5121",k:"id card lost jcard j-card"},
     {cat:"services",t:"IT Help Desk",g:"jhed",c:"2026-11",d:"JHED sign-in, Wi-Fi and university systems. Phone line open 24/7; walk-in on the 2nd floor of the campus bookstore (33rd & St. Paul), Mon–Fri 9 AM–5 PM.",p:"410-516-4357",u:"https://my.jh.edu",k:"it wifi internet password jhed computer tech help"},
     {cat:"services",t:"Wi-Fi (eduroam)",g:"wifi",c:"2026-11",d:"Use the Hopkins network with your JHED ID and password. On eduroam, sign in as yourJHED@jh.edu.",u:"https://studentaffairs.jhu.edu/computing/resnet/wireless-devices-and-printers/",k:"wifi wi-fi internet eduroam network hopkins connect"},
     {cat:"services",t:"Printing & scanning",g:"printing",c:"2026-11",d:"Brody, the MSE Annex and the Hutzler Reading Room. 7¢ a black-and-white page, 20¢ a color side. Email files to print from your phone.",u:"https://ask.library.jhu.edu/library-buildings/faq/409803",k:"print printing printer scan copy pages library"},
@@ -75,7 +75,7 @@ window.BJB = {
 
     // Fun
     {cat:"fun",t:"Hopkins Groups",g:"groups",d:"Student organizations and campus events.",u:"https://jhu.campusgroups.com",k:"clubs groups events organizations join volleyball"},
-    {cat:"fun",t:"O'Connor Rec Center",g:"rec",c:"2026-11",d:"Ralph S. O'Connor Center for Recreation and Well-Being: weight rooms, pool, climbing wall, bouldering cave, courts, group fitness and intramurals.",u:"https://studentaffairs.jhu.edu/recreation/ralph-s-oconnor-recreation-center/hours-of-operation",k:"gym workout pool climbing fitness intramural sports volleyball rec"},
+    {cat:"fun",t:"O'Connor Rec Center",g:"rec",c:"2026-11",d:"Ralph S. O'Connor Center for Recreation and Well-Being: weight rooms, pool, climbing wall, bouldering cave, courts, group fitness and intramurals.",u:"https://students.jhu.edu/student-life/get-involved/oconnor-center-for-recreation-well-being/hours-of-operation/",k:"gym workout pool climbing fitness intramural sports volleyball rec"},
     {cat:"fun",t:"Graduate Representative Organization",d:"Grad student groups, happy hours and tournaments.",u:"https://studentaffairs.jhu.edu/gro/",k:"gro grad social events"},
     {cat:"fun",t:"Baltimore Museum of Art",d:"Free admission, right next to campus.",u:MAPS("Baltimore Museum of Art"),k:"museum art free weekend bma"},
     {cat:"fun",t:"Inner Harbor",d:"Waterfront, aquarium and food. Take the Circulator.",u:"https://www.google.com/maps/search/?api=1&query=Inner+Harbor+Baltimore",k:"harbor weekend aquarium downtown"},
