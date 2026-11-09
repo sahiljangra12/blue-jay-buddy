@@ -245,3 +245,73 @@ window.BJB_TOOLS = { toolsSheet, sosSheet, displayHTML, drawMap, toggleMap };
 })();
 // Top bar: see-through over the photo, solid once you scroll.
 (() => { const f = () => document.body.classList.toggle("scrolled", scrollY > 40); addEventListener("scroll", f, { passive: true }); f(); })();
+
+/* ================= Feedback box ================= */
+// Comments are emailed to the site owner through FormSubmit (formsubmit.co), a free form-to-email service.
+// No account or login. If the service can't be reached, the person's own email app opens with the comment filled in.
+(() => {
+const TO = "sfnu1@jh.edu";
+const ENDPOINT = `https://formsubmit.co/ajax/${TO}`;
+const KINDS = [["idea", "Idea"], ["wrong", "Something's wrong"], ["love", "I like it"]];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+let n = 0;
+window.BJB_FEEDBACK_FORM = (about = "", compact = false) => {
+  const id = "fb" + (++n);
+  return `<form class="fb-form${compact ? " compact" : ""}" data-fbform novalidate>
+    <input type="hidden" name="about" value="${esc(about)}">
+    ${about ? `<p class="fb-about">About: <b>${esc(about)}</b></p>` : ""}
+    <div class="fb-kinds" role="radiogroup" aria-label="Type of feedback">${KINDS.map(([v, l], i) => `<label class="fb-kind"><input type="radio" name="kind" value="${v}" ${(about ? v === "wrong" : i === 0) ? "checked" : ""}><span>${l}</span></label>`).join("")}</div>
+    <label class="fb-label" for="${id}-t">Your comment</label>
+    <textarea id="${id}-t" name="message" rows="${compact ? 3 : 5}" maxlength="1000" required placeholder="${about ? "What's wrong, and what should it say?" : "What would make Blue Jay Buddy better for you?"}"></textarea>
+    <span class="fb-count" aria-live="polite">0 / 1000</span>
+    <label class="fb-label" for="${id}-e">Email, if you'd like a reply <span class="opt-tag">Optional</span></label>
+    <input id="${id}-e" name="email" type="email" autocomplete="email" placeholder="you@jh.edu">
+    <input class="fb-trap" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <div class="fb-actions"><button class="pill primary" type="submit">Send feedback</button><span class="fb-status" role="status"></span></div>
+    <p class="note">Goes straight to the student who runs this site. Please don't include passwords or personal details.</p>
+  </form>`;
+};
+function feedbackSheet(about = ""){
+  window.BJB_APP.openSheet(`<div class="wiz-top"><span class="eyebrow">Feedback</span><button class="iconx" type="button" data-close aria-label="Close">${window.BJB_APP.svg("close")}</button></div>
+    <h2 id="sheetTitle">${about ? "Report a problem" : "Tell us what you think"}</h2>${window.BJB_FEEDBACK_FORM(about)}`);
+  setTimeout(() => document.querySelector("#sheet textarea")?.focus(), 250);
+}
+window.BJB_FEEDBACK = feedbackSheet;
+// Fill the inline feedback box on Today (and again whenever the page is redrawn).
+const fill = () => document.querySelectorAll("[data-fb-slot]:not([data-filled])").forEach(el => { el.dataset.filled = "1"; el.innerHTML = window.BJB_FEEDBACK_FORM("", true); });
+new MutationObserver(fill).observe(document.getElementById("main"), { childList: true }); fill();
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-feedback]"); if (!el) return;
+  e.preventDefault(); e.stopPropagation(); feedbackSheet(el.dataset.about || "");
+}, true);
+document.addEventListener("input", e => {
+  if (e.target.matches(".fb-form textarea")){ const c = e.target.form.querySelector(".fb-count"); c.textContent = `${e.target.value.length} / 1000`; }
+});
+document.addEventListener("submit", async e => {
+  const f = e.target; if (!f.matches("[data-fbform]")) return;
+  e.preventDefault(); e.stopPropagation();
+  const st = f.querySelector(".fb-status"), btn = f.querySelector("[type=submit]");
+  const msg = f.message.value.trim(), email = f.email.value.trim(), kind = (f.querySelector("[name=kind]:checked") || {}).value || "idea", about = f.about.value;
+  if (f._honey.value) return; // a bot filled the hidden field
+  if (msg.length < 3){ st.textContent = "Write a few words first."; f.message.focus(); return; }
+  if (email && !f.email.checkValidity()){ st.textContent = "That email doesn't look right. Fix it or leave it blank."; f.email.focus(); return; }
+  let last = 0; try { last = +localStorage.getItem("bjb-fb-last") || 0; } catch {}
+  if (Date.now() - last < 30000){ st.textContent = "Thanks! Give it 30 seconds before sending another."; return; }
+  const label = KINDS.find(k => k[0] === kind)[1];
+  const page = (location.hash || "#today").slice(1);
+  btn.disabled = true; st.textContent = "Sending…";
+  try {
+    const r = await fetch(ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ _subject: `Blue Jay Buddy feedback: ${label}${about ? " – " + about : ""}`, _template: "table", _captcha: "false",
+        Type: label, About: about || "(general)", Comment: msg, "Reply to": email || "(not given)", Page: page, Sent: new Date().toLocaleString() }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || String(j.success) === "false") throw new Error(j.message || r.status);
+    try { localStorage.setItem("bjb-fb-last", String(Date.now())); } catch {}
+    f.outerHTML = `<div class="fb-done" role="status"><b>Thank you. Your feedback was sent.</b><span>${email ? "You'll get a reply at " + esc(email) + "." : "Every comment is read."}</span></div>`;
+  } catch {
+    btn.disabled = false;
+    const body = `${label}${about ? " – " + about : ""}\n\n${msg}\n\nPage: ${page}`;
+    st.innerHTML = `Couldn't send it from here. <a href="mailto:${TO}?subject=${encodeURIComponent("Blue Jay Buddy feedback: " + label)}&body=${encodeURIComponent(body)}">Send it by email instead</a>.`;
+  }
+}, true);
+})();

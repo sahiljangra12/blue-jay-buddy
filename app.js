@@ -221,7 +221,7 @@ function card(it, i = 0, words = []){
         <a class="act" href="${esc(it.u)}" target="_blank" rel="noopener">Open ${svg("open")}</a>
         ${it.g && G[it.g] ? `<button class="act soft" type="button" data-guide="${it.g}">How to</button>` : ""}
       </div>
-      <div class="foot-row"><span class="checked">${svg("shield")}Checked ${esc(monthLabel(it.c || D.reviewed) || "recently")}</span><a class="report" href="${reportHref(it.t)}">Report a problem</a></div>
+      <div class="foot-row"><span class="checked">${svg("shield")}Checked ${esc(monthLabel(it.c || D.reviewed) || "recently")}</span><a class="report" href="${reportHref(it.t)}" data-feedback data-about="${esc(it.t)}">Report a problem</a></div>
     </div>
     <button class="star" type="button" data-fav="${esc(it.t)}" aria-pressed="${fav}" aria-label="${fav?"Remove from":"Add to"} favorites: ${esc(it.t)}">${svg("star")}</button>
   </article>`;
@@ -588,7 +588,9 @@ function viewHome(){
     <h2 class="subhead" id="h-apps">Explore Hopkins</h2>
     <nav class="launcher" aria-label="Sections and apps">${launcher()}</nav>
   </section>
-  <p class="feedback-line">Built by a student. Something missing or wrong? <a href="mailto:${D.contact}?subject=${encodeURIComponent("Blue Jay Buddy feedback")}">Tell me</a> · <a href="privacy.html">Privacy</a></p>`;
+  <section class="tile fb-tile io" aria-labelledby="h-fb"><div class="fb-head"><span class="eyebrow">Feedback</span><h2 class="ctx-title" id="h-fb">Help make it better.</h2>
+    <p class="note">Built by a student, for students. Found something wrong, or want a feature? Write it here.</p></div>
+    <div data-fb-slot><a class="pill primary" href="mailto:${D.contact}?subject=Blue%20Jay%20Buddy%20feedback">Email feedback</a></div></section>`;
 }
 // The launcher: Hopkins apps students open daily, then every section of Blue Jay Buddy.
 // "Explore": full-screen photo panels, one per section, plus the Hopkins apps students open every day.
@@ -829,7 +831,7 @@ function guideSheet(id){
       ${canTick ? `<button class="pill secondary" type="button" data-tick="${cid}" data-close-after>${doneSet.has(cid) ? `${svg("check")}Done` : "Mark as done"}</button>` : ""}
       <button class="pill ghost" type="button" data-close>Close</button>
     </div>
-    <p class="note" style="margin-top:14px">Steps out of date? <a href="${reportHref("Guide: " + g.title)}">Report a problem</a></p>`);
+    <p class="note" style="margin-top:14px">Steps out of date? <a href="${reportHref("Guide: " + g.title)}" data-feedback data-about="${esc("Guide: " + g.title)}">Report a problem</a></p>`);
 }
 function settingsSheet(){
   openSheet(`<div class="wiz-top"><span class="eyebrow">Settings</span><button class="iconx" type="button" data-close aria-label="Close">${svg("close")}</button></div>
