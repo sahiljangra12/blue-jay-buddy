@@ -1446,3 +1446,13 @@ body.scrolled .gnav{background:rgba(0,0,0,.94)}
   .hero-cap{right:56px;bottom:16px}
   .sec-banner .credit{display:none}
 }
+
+/* Phones: finger-sized header buttons and readable small labels */
+@media (max-width:640px){
+  .gicon{width:44px;height:44px}
+  html body .gpill{min-height:40px;font-size:12.5px}
+  .iconx,.iconx.sm,.show-btn{width:40px;height:40px}
+  html body .xbtn{font-size:12px}
+  html body .hero-cap span,html body .credit,html body .credit a{font-size:12px}
+  .credits summary{min-height:44px;display:flex;align-items:center}
+}
